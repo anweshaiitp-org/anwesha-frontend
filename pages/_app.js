@@ -1,5 +1,4 @@
 import '../styles/globals.css'
-import { Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
@@ -23,10 +22,7 @@ import Navbar from '../components/Navbar-temp'
 
 import Footer from '../components/Footer/Footer.js'
 
-const poppins = Poppins({
-    weight: ['400', '600', '900', '100', '300', '500', '700', '800'],
-    subsets: ['latin'],
-})
+const poppins = { className: 'font-poppins' }
 function MyApp({ Component, pageProps }) {
     const router = useRouter()
     // const showHeader = router.pathname === '/ca-register' || '/ca-login' ? false : true;

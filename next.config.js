@@ -16,6 +16,15 @@ const nextConfig = {
         ],
 
     },
+
+    async rewrites() {
+        return [
+            {
+                source: '/api/backend/:path*',
+                destination: 'https://ni63bv2pro.execute-api.localhost.localstack.cloud:4566/prod/:path*',
+            },
+        ]
+    },
     async redirects() {
         return [
             {

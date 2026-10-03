@@ -2,12 +2,8 @@ import Image from 'next/image'
 import React from 'react'
 import { useEffect, useState, useRef } from 'react'
 import styles from '../styles/oursponsors.module.css'
-import { Josefin_Sans } from 'next/font/google'
 
-const josefinSans = Josefin_Sans({
-    weight: ['400', '700', '500', '600'],
-    subsets: ['latin'],
-})
+const josefinSans = { className: 'font-josefin' }
 
 const Oursponsors = () => {
     const [year, setYear] = useState('spons26')

@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
-import { DM_Serif_Display } from 'next/font/google'
 // import Link from 'next/link'
 // import { Josefin_Sans } from '@next/font/google'
 // import HomeBackgroundAnimation from '../components/Rive/homeBackgrounAnim'
@@ -25,13 +24,11 @@ import VideoPlayer from './jumscare'
 // import { motion } from 'framer-motion'
 import CountdownTimer from './jumscaretimeout'
 import HeroSection from '../components/Hero/Hero'
+import EventDetailsModal from '../components/BigModal'
 // import Spline from '@splinetool/react-spline';
 import { useRouter } from 'next/router'
 
-const dmSerif = DM_Serif_Display({
-    subsets: ['latin'],
-    weight: '400',
-})
+const dmSerif = { className: 'font-dm-serif' }
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')
@@ -718,19 +715,31 @@ const IndexPage = () => {
 
     // events thingyy
     const [events, setEvents] = useState([])
+    const [specialEvents, setSpecialEvents] = useState([])
+    const [selectedSpecialEvent, setSelectedSpecialEvent] = useState(null)
     useEffect(() => {
         let host = process.env.NEXT_PUBLIC_HOST
 
         async function callAPI() {
             try {
-                const res = await fetch(`${host}/event/allevents`, {
+                const res = await fetch(`${host}/events`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 })
                 const data = await res.json()
-                setEvents(data)
+                const eventList = data.events || data || []
+                setEvents(eventList)
+
+                const specialRes = await fetch(`${host}/events/special`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                const specialData = await specialRes.json()
+                const specialList = specialData.events || specialData.special_events ||
+                    specialData.specialEvents || specialData.data || specialData || []
+                setSpecialEvents(Array.isArray(specialList) ? specialList : [])
             } catch (e) {
                 console.log('Failed to fetch')
             }
@@ -956,7 +965,7 @@ const IndexPage = () => {
                         <div className={styles.events_images_parent}>
                             <button
                                 className={styles.bat_scroll_button}
-                                onClick={previouseEventImage}
+                                onClick={nextEventImage}
                             >
                                 <BatLeft />
                             </button>
@@ -968,7 +977,7 @@ const IndexPage = () => {
                             />
                             <button
                                 className={styles.bat_scroll_button}
-                                onClick={nextEventImage}
+                                onClick={previouseEventImage}
                             >
                                 <BatRight />
                             </button>
@@ -987,6 +996,42 @@ const IndexPage = () => {
                             </button>
                         </div>
                     </section>
+
+                    {/* Special Events */}
+                    {specialEvents.length > 0 && (
+                        <section className={styles.special_events}>
+                            <div className={styles.sexy_title}>
+                                <h2 className={dmSerif.className}>Special Events</h2>
+                                <h3>Experience the highlights of Anwesha</h3>
+                            </div>
+                            <div className={styles.special_events_grid}>
+                                {specialEvents.slice(0, 3).map((event, index) => {
+                                    const poster = event.poster_file || event.poster || event.poster_url || '/events/poster.png'
+                                    const title = event.name || event['Event Name'] || 'Special Event'
+                                    return (
+                                        <button type="button" className={styles.special_event_card}
+                                            key={event.id || event._id || `${title}-${index}`}
+                                            onClick={() => setSelectedSpecialEvent({
+                                                ...event,
+                                                poster: event.poster || event.poster_file || event.poster_url,
+                                            })}>
+                                            <div className={styles.special_event_poster}
+                                                style={{ backgroundImage: `url(${poster})` }}>
+                                                <span>{title.split('#')[0]}</span>
+                                            </div>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </section>
+                    )}
+                    {selectedSpecialEvent && (
+                        <EventDetailsModal
+                            title={(selectedSpecialEvent.name || selectedSpecialEvent['Event Name'] || 'Special Event').split('#')[0]}
+                            body={selectedSpecialEvent}
+                            closeHandler={() => setSelectedSpecialEvent(null)}
+                        />
+                    )}
 
                     {/* MERCH */}
                     <section className={styles.merch} id="merch">
