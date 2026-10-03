@@ -1,5 +1,4 @@
 "use client";
-import { DM_Serif_Display } from "next/font/google";
 
 import Image from "next/image";
 import styles from "./Footer.module.css";
@@ -13,10 +12,7 @@ const cn = (...classes) => {
 };
 // assets path => '/pics/footer/{name}'
 
-const dmSerif = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
-});
+const dmSerif = { className: 'font-dm-serif' };
 
 const Footer = () => {
   const isCA_page = usePathname() === "/campus-ambassador";
