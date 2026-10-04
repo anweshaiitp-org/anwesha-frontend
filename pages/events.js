@@ -159,18 +159,17 @@ const Events = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const res = await fetch(`${host}/event/allevents`, {
+                const res = await fetch(`${host}/events`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                 })
                 const data = await res.json()
-                const normalized = Array.isArray(data)
-                    ? data.map((ev) => ({
+                const eventsArray = Array.isArray(data) ? data : (data.events || [])
+                const normalized = eventsArray.map((ev) => ({
                         ...ev,
-                        poster: makePosterUrl(ev.poster_file || ev.poster),
+                        poster: makePosterUrl(ev.poster_file || ev.poster || ev.poster_url),
                         name: ev.name || ev["Event Name"] || '',
                     }))
-                    : []
                 normalized.forEach((ev, idx) => {
                     console.log(`[Events] ${idx} poster:`, ev.poster)
                 })

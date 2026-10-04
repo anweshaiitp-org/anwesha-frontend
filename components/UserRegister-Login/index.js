@@ -27,6 +27,9 @@ const UserRegisterForm = () => {
     const [college, setCollege] = React.useState('')
     const [cnfPassword, setCnfPassword] = React.useState('')
     const [aadhaar, setAadhaar] = React.useState('')
+    const [gender, setGender] = React.useState('Male')
+    const [dob, setDob] = React.useState('')
+    const [referralCode, setReferralCode] = React.useState('')
     const [passwordShown, setPasswordShown] = React.useState(false)
     const [usertype, setUserType] = React.useState('student')
     const [college_name, setCollegeName] = React.useState('')
@@ -137,20 +140,26 @@ const UserRegisterForm = () => {
             full_name: name,
             email_id: email.toLowerCase(),
             password: password,
-            aadhaar_number: aadhaar,
-            user_type: isproff ? isproff : usertype,
             college_name: usertype == 'iitp_student' ? 'IIT Patna' : college_name,
+            gender: gender,
+            dob: dob,
+            user_type: isproff ? isproff : usertype,
+            referral_code: referralCode ? referralCode : undefined,
         }
         try {
             setLoading(true)
             if (newsletter) {
-                let emailResponse = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: formData,
-                })
-                let emailData = await emailResponse.json()
+                try {
+                    let emailResponse = await fetch(scriptURL, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors',
+                    })
+                } catch (e) {
+                    console.log('Newsletter subscription failed, continuing registration', e)
+                }
             }
-            const response = await fetch(`${host}/user/register`, {
+            const response = await fetch(`${host}/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -470,6 +479,54 @@ const UserRegisterForm = () => {
                                         required
                                     />
                                 )}
+                                <br />
+                            </div>
+                            <div className={styles.field}>
+                                <label htmlFor="Gender">Gender</label>
+                                <br />
+                                <select
+                                    name="Gender"
+                                    value={gender}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                    style={{
+                                        color: 'white',
+                                        padding: '0px 20px',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <br />
+                            </div>
+                        </div>
+                        <br />
+                        <div className={styles.row}>
+                            <div className={styles.field}>
+                                <label htmlFor="DOB">Date of Birth</label>
+                                <br />
+                                <input
+                                    type="date"
+                                    name="DOB"
+                                    value={dob}
+                                    onChange={(e) => setDob(e.target.value)}
+                                    required
+                                    style={{ width: '100%', padding: '0px 20px', color: 'white' }}
+                                />
+                                <br />
+                            </div>
+                            <div className={styles.field}>
+                                <label htmlFor="Referral">Referral Code (Optional)</label>
+                                <br />
+                                <input
+                                    type="text"
+                                    name="Referral"
+                                    placeholder="Enter CA Referral Code"
+                                    value={referralCode}
+                                    onChange={(e) => setReferralCode(e.target.value)}
+                                />
                                 <br />
                             </div>
                         </div>
