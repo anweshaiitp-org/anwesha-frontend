@@ -1,8 +1,7 @@
 import { setRequestMeta } from 'next/dist/server/request-meta'
 import React, { useState, useEffect, useContext } from 'react'
 import {
-    teamEventRegistration,
-    teamEventRegistrationiitp,
+    teamEventRegistrationNew,
 } from '../../components/Event Registration/teamEventRegistration'
 import styles from '../../styles/EventRegistration.module.css'
 import { AuthContext } from '../../components/authContext'
@@ -28,53 +27,36 @@ const EventRegistration = () => {
         tags,
     } = router.query
 
-    const handleSubmit = (e) => {
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        if (
-            userData.state.user.user_type ===
-            'iitp_student'
-        ) {
-            if (tags !== '5')
-                teamEventRegistrationiitp(
-                    id,
-                    teamName,
-                    memberID,
-                    router
-                )
-            else {
-                teamEventRegistration(
-                    id,
-                    teamName,
-                    memberID,
-                    userData.state.user.email_id,
-                    userData.state.user
-                        .phone_number,
-                    registration_fee,
-                    router,
-                    toast
-                )
-            }
-        } else {
-            // if (registration_fee !== "0.00")
-            teamEventRegistration(
+        if (isSubmitting) return // prevent double submission
+
+        setIsSubmitting(true)
+        try {
+            // Always use the new unified registration endpoint
+            await teamEventRegistrationNew(
                 id,
                 teamName,
                 memberID,
-                userData.state.user.email_id,
-                userData.state.user.phone_number,
-                registration_fee,
-                router,
-                toast
+                router
             )
-            // else
-            //     teamEventRegistrationiitp(
-            //         id,
-            //         teamName,
-            //         memberID,
-            //         router,
-            //     )
+        } catch (error) {
+            console.error('[EventRegistration] Submit error:', error)
+            toast.error('Something went wrong. Please try again.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: 'light',
+            })
+        } finally {
+            setIsSubmitting(false)
         }
-
     }
 
     useEffect(() => {
@@ -99,18 +81,6 @@ const EventRegistration = () => {
 
     return (
         <div>
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
             <div className={styles.container}>
                 <div className={styles.effectcontainer}>
                     <div className={styles.content}>
@@ -223,8 +193,9 @@ const EventRegistration = () => {
                                     <button
                                         className={cn(styles.register_button, styles.register_button_small)}
                                         type='submit'
+                                        disabled={isSubmitting}
                                     >
-                                        REGISTER
+                                        {isSubmitting ? 'REGISTERING...' : 'REGISTER'}
                                     </button>
                                 </div>
                             </motion.div>
