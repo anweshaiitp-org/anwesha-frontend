@@ -5,7 +5,7 @@ import { AuthContext } from '../components/authContext'
 
 const Pronite = () => {
     const userData = useContext(AuthContext)
-    const host = process.env.NEXT_PUBLIC_HOST
+    const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const router = useRouter()
     useEffect(() => {
         const handleRegistration = () => {

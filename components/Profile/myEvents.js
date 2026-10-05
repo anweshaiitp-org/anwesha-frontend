@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import styles from './profile.module.css'
 import { AuthContext } from '../authContext'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function MyEvents() {
     const [events, setEvents] = useState({ solo: [], team: [] })

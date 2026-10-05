@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react'
 import { AuthContext } from '../authContext'
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function loadScript(src) {
     return new Promise((resolve) => {

@@ -6,7 +6,7 @@ import styles from '../../components/UserRegister-Login/style.module.css'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')

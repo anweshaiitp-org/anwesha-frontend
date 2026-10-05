@@ -12,7 +12,7 @@ import { useRouter } from 'next/router'
 import { ColorRing } from 'react-loader-spinner'
 import details from '../prof_staff_details'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')

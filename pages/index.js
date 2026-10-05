@@ -718,7 +718,7 @@ const IndexPage = () => {
     const [specialEvents, setSpecialEvents] = useState([])
     const [selectedSpecialEvent, setSelectedSpecialEvent] = useState(null)
     useEffect(() => {
-        let host = process.env.NEXT_PUBLIC_HOST
+        let host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
         async function callAPI() {
             try {

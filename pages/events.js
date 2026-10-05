@@ -139,7 +139,7 @@ const Events = () => {
         'https://drive.google.com/uc?export=view&id=1Y5m4LFHEMFWFDJPhsZSpIT02P0U8qU1e',
         'https://drive.google.com/uc?export=view&id=1wKHW-An6PKqP-wBUqPStms4IFg_sH5aR',
     ]
-    const host = process.env.NEXT_PUBLIC_HOST
+    const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const mediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE || host
     const [events, setEvents] = useState([])
     const [filteredEvents, setFilteredEvents] = useState([]) // Manages the filtered events

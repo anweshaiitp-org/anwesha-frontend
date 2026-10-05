@@ -4,7 +4,7 @@ import styles from './profile.module.css'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function Details() {
     const userData = useContext(AuthContext)

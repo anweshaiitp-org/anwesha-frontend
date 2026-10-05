@@ -1,4 +1,5 @@
 import '../styles/globals.css'
+import Head from 'next/head'
 import { Analytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
@@ -36,6 +37,9 @@ function MyApp({ Component, pageProps }) {
     // }
     return (
         <main className={poppins.className} style={{ background: 'black' }}>
+            <Head>
+                <title>Anwesha 2026 | IIT Patna</title>
+            </Head>
             <AuthUserProvider>
                 {/* style={{ background: 'linear-gradient(169deg, #81D9FF -5.25%, #D4F2FF 111.03%)' }} */}
 
