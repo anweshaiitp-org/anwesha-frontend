@@ -21,7 +21,7 @@ const nextConfig = {
         return [
             {
                 source: '/api/backend/:path*',
-                destination: 'https://ni63bv2pro.execute-api.localhost.localstack.cloud:4566/prod/:path*',
+                destination: `${process.env.BACKEND_URL}/:path*`,
             },
         ]
     },

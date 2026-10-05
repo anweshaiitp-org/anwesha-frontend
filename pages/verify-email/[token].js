@@ -22,7 +22,7 @@ export default function VerifyEmail() {
         setLoading(true)
         try {
             const response = await fetch(
-                `${host}/user/verifyemail/${token}`,
+                `${host}/auth/verify/${token}`,
                 {
                     method: 'POST',
                     headers: {

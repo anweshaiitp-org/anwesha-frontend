@@ -74,7 +74,7 @@ const AuthProvider = ({ children }) => {
                 Authorization: `Bearer ${currentToken}`,
             }
 
-            const response = await fetch(`${host}/user/profile/`, {
+            const response = await fetch(`${host}/users/profile`, {
                 method: 'GET',
                 headers,
                 redirect: 'follow',
@@ -103,28 +103,15 @@ const AuthProvider = ({ children }) => {
                 return
             }
 
-            // 404 or other error: fall back to /user/editprofile
             if (!response.ok) {
-                console.warn(`[Auth] /user/profile/ returned ${response.status}, falling back to /user/editprofile`)
-                const fallbackResponse = await fetch(`${host}/user/editprofile`, {
-                    method: 'GET',
-                    headers,
-                    redirect: 'follow',
-                })
-                if (!fallbackResponse.ok) {
-                    console.error(`[Auth] /user/editprofile also failed with ${fallbackResponse.status}`)
-                    setUser(null)
-                    return
-                }
-                const fallbackResult = await fallbackResponse.json()
-                console.log('[Auth] User data loaded (fallback):', fallbackResult)
-                setUser(fallbackResult)
+                console.error(`[Auth] /users/profile returned ${response.status}`)
+                setUser(null)
                 return
             }
 
             const result = await response.json()
             console.log('[Auth] User data loaded:', result)
-            setUser(result) // Successfully authenticated, set the user data
+            setUser(result.data || result) // Successfully authenticated, set the user data
         } catch (error) {
             console.error('[Auth] Error fetching user data:', error)
         }
