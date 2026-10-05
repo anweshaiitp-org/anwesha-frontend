@@ -5,7 +5,6 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <title>Anwesha 2026 | IIT Patna</title>
         <meta name="description" content="Official cultural fest of IIT Patna - Anwesha 2026" />
 
         <meta property="og:title" content="Anwesha 2026 | IIT Patna" />

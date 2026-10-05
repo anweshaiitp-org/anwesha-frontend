@@ -4,7 +4,7 @@ import Head from 'next/head'
 import styles from '../styles/ticket.module.css'
 import TicketView from '../components/TicketView'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function TicketPage() {
     const router = useRouter()

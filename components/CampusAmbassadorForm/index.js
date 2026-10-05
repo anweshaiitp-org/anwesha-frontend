@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import GreetingLottie from '../displaylottie'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-const host = 'backend.anwesha.live'
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const CampusAmbassadorForm = () => {
     const [phone, setPhone] = React.useState('')
@@ -87,7 +87,7 @@ const CampusAmbassadorForm = () => {
         }
         try {
             const response = await fetch(
-                `https://${host}/campasambassador/register`,
+                `${host}/campasambassador/register`,
                 {
                     method: 'POST',
                     headers: {

@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 
 const AuthUserContext = createContext()
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 export function AuthUserProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null)

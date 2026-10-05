@@ -7,7 +7,7 @@ import { AuthContext } from '../authContext'
 import 'react-toastify/dist/ReactToastify.css'
 import Image from 'next/image'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')

@@ -301,7 +301,7 @@ const EventSlider = ({ images, currIndex, nextEventImage, previouseEventImage })
 
 function Anweshapass() {
     const userData = useContext(AuthContext)
-    const host = process.env.NEXT_PUBLIC_HOST
+    const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const router = useRouter()
     const [events, setEvents] = useState([]);
     const [isloading, setisloading] = useState(false);
