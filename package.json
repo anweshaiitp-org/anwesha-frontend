@@ -42,6 +42,7 @@
     "react-loader-spinner": "^5.3.4",
     "react-lottie": "^1.2.3",
     "react-parallax": "^3.5.1",
+    "react-qr-code": "^2.2.0",
     "react-razorpay": "^1.2.0",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^6.16.0",

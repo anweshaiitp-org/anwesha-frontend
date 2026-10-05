@@ -1,133 +1,286 @@
-@font-face {
-    font-family: 'Ticket Poppins';
-    src: url('/font/Poppins-SemiBold.ttf') format('truetype');
-    font-weight: 100 900;
-}
+/* ---------- Tokens ---------- */
+.page {
+    --bg: #14090f;
+    --bg-2: #1d0f19;
+    --gold: #d9a94e;
+    --gold-soft: #f0ce8f;
+    --cream: #f7ecd8;
+    --muted: rgba(247, 236, 216, 0.62);
+    --ok: #8fd5a6;
 
-@font-face {
-    font-family: 'Ticket Display';
-    src: url('/styles/fonts/Cormorant_Garamond/CormorantGaramond-Regular.ttf') format('truetype');
-}
-
-.ticketContainer {
     min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: max(20px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+    color: var(--cream);
+    font-family: 'Poppins', system-ui, sans-serif;
+    background:
+        radial-gradient(900px 520px at 85% -10%, rgba(140, 42, 76, 0.45), transparent 60%),
+        radial-gradient(800px 520px at -10% 110%, rgba(34, 58, 94, 0.45), transparent 60%),
+        linear-gradient(180deg, var(--bg-2), var(--bg));
+}
+
+/* ---------- Header ---------- */
+.header {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(217, 169, 78, 0.25);
+}
+
+.brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+}
+
+.brandSub {
+    font-size: 0.8rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+}
+
+/* ---------- Stage ---------- */
+.stage {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+
+/* ---------- Ticket frame (landscape → portrait on phones) ---------- */
+.frame {
+    width: 100%;
+    max-width: 900px;
+}
+
+.frameInner {
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .frame {
+        container-type: inline-size;
+        aspect-ratio: 380 / 900;
+        position: relative;
+        max-width: 380px;
+    }
+
+    .frameInner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100cqw * 900 / 380);
+        height: 100cqw;
+        transform-origin: top left;
+        transform: translateX(100cqw) rotate(90deg);
+    }
+}
+
+/* ---------- Verified chip + hint ---------- */
+.verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(143, 213, 166, 0.35);
+    background: rgba(143, 213, 166, 0.08);
+    color: var(--ok);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.hint {
+    max-width: 46ch;
+    margin: 4px 0 0;
+    text-align: center;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+/* ---------- Loading ---------- */
+.skeleton {
+    width: 100%;
+    aspect-ratio: 900 / 380;
+    display: grid;
+    grid-template-columns: 660fr 240fr;
+    border-radius: 22px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #4a0f28, #2a0a1a 60%, #3a1226);
+    border: 1px solid rgba(217, 169, 78, 0.35);
+    box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.6);
+}
+
+.skLeft {
+    padding: 6% 6% 5%;
+    display: flex;
+    flex-direction: column;
+    gap: 3.2%;
+    border-right: 1.5px dashed rgba(217, 169, 78, 0.35);
+}
+
+.skRight {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
-.ticketCard {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 2.5rem;
-    max-width: 960px;
-    width: 100%;
-    text-align: center;
-    color: #fff;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+.skBar,
+.skQr {
+    display: block;
+    border-radius: 8px;
+    background: linear-gradient(
+        100deg,
+        rgba(247, 236, 216, 0.07) 30%,
+        rgba(240, 206, 143, 0.2) 50%,
+        rgba(247, 236, 216, 0.07) 70%
+    );
+    background-size: 220% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
 }
 
-.ticketBadge {
-    display: inline-block;
-    background: linear-gradient(135deg, #e94560, #c23152);
-    padding: 0.4rem 1.2rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 1.5rem;
+.skLogo { width: 34%; height: 9%; }
+.skTitle { width: 58%; height: 16%; margin-top: 3%; }
+.skTitleShort { width: 40%; height: 16%; }
+.skLine { width: 90%; height: 6%; }
+.skLineShort { width: 62%; height: 6%; }
+
+.skQr {
+    width: 76%;
+    aspect-ratio: 1;
+    border-radius: 12px;
 }
 
-.ticketName {
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.3rem;
-    color: #fff;
+@keyframes shimmer {
+    from { background-position: 120% 0; }
+    to { background-position: -120% 0; }
 }
 
-.ticketAnweshaId {
-    font-size: 1.1rem;
-    color: #e94560;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-}
-
-.ticketDetails {
+.status {
     display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-top: 1rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.ticketRow {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0.4rem 0;
-}
-
-.ticketLabel {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.ticketValue {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #fff;
-}
-
-.ticketLoading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    color: rgba(255, 255, 255, 0.7);
+    gap: 10px;
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--muted);
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #e94560;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
+    border: 2px solid rgba(217, 169, 78, 0.25);
+    border-top-color: var(--gold);
     animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
-.ticketError {
-    color: #e94560;
-    font-size: 1.1rem;
-    padding: 1.5rem;
+/* ---------- Error ---------- */
+.errorPanel {
+    width: 100%;
+    max-width: 460px;
+    padding: 36px 28px 30px;
+    text-align: center;
+    border-radius: 22px;
+    border: 1px solid rgba(217, 169, 78, 0.35);
+    background: linear-gradient(160deg, rgba(110, 22, 56, 0.45), rgba(20, 9, 15, 0.6));
+    box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.6);
 }
 
-.ticketErrorIcon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+.errorIcon {
+    width: 52px;
+    height: 52px;
+    color: var(--gold);
 }
 
-@media (max-width: 480px) {
-    .ticketCard {
-        padding: 1.5rem;
-        margin: 1rem;
-    }
+.errorTitle {
+    margin: 16px 0 8px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    line-height: 1.2;
+    color: var(--cream);
+}
 
-    .ticketName {
-        font-size: 1.4rem;
+.errorText {
+    margin: 0 auto;
+    max-width: 38ch;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--muted);
+}
+
+.actions {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btnPrimary,
+.btnGhost {
+    min-height: 44px;
+    padding: 0 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font: 600 0.92rem 'Poppins', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btnPrimary {
+    border: 1px solid var(--gold);
+    background: var(--gold);
+    color: #3a0c20;
+}
+
+.btnPrimary:hover { background: var(--gold-soft); }
+
+.btnGhost {
+    border: 1px solid rgba(217, 169, 78, 0.5);
+    background: transparent;
+    color: var(--cream);
+}
+
+.btnGhost:hover { border-color: var(--gold); background: rgba(217, 169, 78, 0.1); }
+
+.btnPrimary:active,
+.btnGhost:active { transform: scale(0.97); }
+
+.btnPrimary:focus-visible,
+.btnGhost:focus-visible {
+    outline: 2px solid var(--gold-soft);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skBar,
+    .skQr,
+    .spinner {
+        animation-duration: 3s;
     }
+    .btnPrimary,
+    .btnGhost { transition: none; }
 }
