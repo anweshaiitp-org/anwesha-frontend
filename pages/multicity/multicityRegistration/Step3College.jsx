@@ -1,7 +1,5 @@
 // src/pages/register/Step3CollegeDetails.jsx
 import React, { useState } from 'react'
-import { db } from '../../../lib/multicity/firebase/firebaseConfig'
-import { doc, updateDoc } from 'firebase/firestore'
 import { useAuthUser } from '../../../lib/multicity/context/AuthUserContext'
 import toast from 'react-hot-toast'
 import { GraduationCap, Calendar, MapPin } from 'lucide-react'
@@ -12,13 +10,19 @@ export default function Step3CollegeDetails({
     next,
 }) {
     const { currentUser, updateUser } = useAuthUser()
+
     const [collegeName, setCollegeName] = useState(
         currentUser?.college?.name || ''
     )
+
     const [passingYear, setPassingYear] = useState(
         currentUser?.college?.passingYear || ''
     )
-    const [city, setCity] = useState(currentUser?.college?.city || '')
+
+    const [city, setCity] = useState(
+        currentUser?.college?.city || ''
+    )
+
     const [isDisabled, setDisabled] = useState(false)
 
     const handleSubmit = async (e) => {
@@ -27,27 +31,37 @@ export default function Step3CollegeDetails({
 
         if (!currentUser?.uid) {
             toast.error('User not found. Please login again.')
+            setDisabled(false)
             return
         }
 
         try {
-            const collegeDetails = { name: collegeName, passingYear, city }
+            const collegeDetails = {
+                name: collegeName,
+                passingYear,
+                city,
+            }
 
-            await updateDoc(doc(db, 'users', currentUser.uid), {
+            // Keep college information in the registration form data.
+            // This will be sent to the new backend during final submission.
+            setFormData({
+                ...(formData || {}),
+                college: collegeDetails,
+            })
+
+            // Update local registration state.
+            // No Firebase/Firestore call is required anymore.
+            await updateUser(currentUser.uid, {
                 college: collegeDetails,
                 status: '3',
             })
 
-            updateUser(currentUser.uid, {
-                college: collegeDetails,
-                status: '3',
-            })
             toast.success('College details saved!')
             next()
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message || 'Failed to save college details.')
         } finally {
-            setDisabled(false) // re-enable form after error
+            setDisabled(false)
         }
     }
 
@@ -91,6 +105,7 @@ export default function Step3CollegeDetails({
                 >
                     Step 3: College Details
                 </h3>
+
                 <p
                     style={{
                         color: '#1f2937',
@@ -122,11 +137,14 @@ export default function Step3CollegeDetails({
                             }}
                             size={20}
                         />
+
                         <input
                             type="text"
                             placeholder="Enter your college name"
                             value={collegeName}
-                            onChange={(e) => setCollegeName(e.target.value)}
+                            onChange={(e) =>
+                                setCollegeName(e.target.value)
+                            }
                             style={{
                                 width: '100%',
                                 paddingLeft: '3rem',
@@ -135,7 +153,8 @@ export default function Step3CollegeDetails({
                                 paddingBottom: '0.75rem',
                                 borderRadius: '0.75rem',
                                 color: 'black',
-                                backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                                backgroundColor:
+                                    'rgba(255, 255, 255, 0.6)',
                                 outline: 'none',
                                 border: '2px solid transparent',
                                 transition: 'all 0.3s ease',
@@ -165,11 +184,14 @@ export default function Step3CollegeDetails({
                             }}
                             size={20}
                         />
+
                         <input
                             type="number"
                             placeholder="Passing Year e.g. 2028"
                             value={passingYear}
-                            onChange={(e) => setPassingYear(e.target.value)}
+                            onChange={(e) =>
+                                setPassingYear(e.target.value)
+                            }
                             style={{
                                 width: '100%',
                                 paddingLeft: '3rem',
@@ -178,7 +200,8 @@ export default function Step3CollegeDetails({
                                 paddingBottom: '0.75rem',
                                 borderRadius: '0.75rem',
                                 color: 'black',
-                                backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                                backgroundColor:
+                                    'rgba(255, 255, 255, 0.6)',
                                 outline: 'none',
                                 border: '2px solid transparent',
                                 transition: 'all 0.3s ease',
@@ -208,6 +231,7 @@ export default function Step3CollegeDetails({
                             }}
                             size={20}
                         />
+
                         <input
                             type="text"
                             placeholder="Enter city of your college"
@@ -221,7 +245,8 @@ export default function Step3CollegeDetails({
                                 paddingBottom: '0.75rem',
                                 borderRadius: '0.75rem',
                                 color: 'black',
-                                backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                                backgroundColor:
+                                    'rgba(255, 255, 255, 0.6)',
                                 outline: 'none',
                                 border: '2px solid transparent',
                                 transition: 'all 0.3s ease',
@@ -251,11 +276,14 @@ export default function Step3CollegeDetails({
                             paddingBottom: '0.75rem',
                             borderRadius: '0.75rem',
                             width: '100%',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                            boxShadow:
+                                '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                             transition: 'all 0.3s ease',
                             transform: 'scale(1)',
                             border: 'none',
-                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            cursor: isDisabled
+                                ? 'not-allowed'
+                                : 'pointer',
                             opacity: isDisabled ? 0.5 : 1,
                         }}
                         onMouseEnter={(e) => {
@@ -278,7 +306,9 @@ export default function Step3CollegeDetails({
                         }}
                         disabled={isDisabled}
                     >
-                        {isDisabled ? 'Processing...' : 'Save & Next →'}
+                        {isDisabled
+                            ? 'Processing...'
+                            : 'Save & Next →'}
                     </button>
                 </form>
             </div>

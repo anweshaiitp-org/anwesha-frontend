@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from '../authContext'
 import 'react-toastify/dist/ReactToastify.css'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')
@@ -19,7 +19,7 @@ const ForgotPassword = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-        let body = { email: email }
+        let body = { email_id: email }
         // user input validation
         if (email.length == 0) {
             toast.warning('Please fill email', {
@@ -35,7 +35,7 @@ const ForgotPassword = () => {
             return
         }
         try {
-            const response = await fetch(`${host}/user/forgetpassword`, {
+            const response = await fetch(`${host}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

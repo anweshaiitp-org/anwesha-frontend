@@ -1,252 +1,178 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { auth, db } from '../firebase/firebaseConfig'
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    sendEmailVerification,
-    onAuthStateChanged,
-} from 'firebase/auth'
-import {
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    query,
-    where,
-    getDocs,
-    updateDoc,
-} from 'firebase/firestore'
+import React, { createContext, useContext, useState } from 'react'
 import toast from 'react-hot-toast'
 
 const AuthUserContext = createContext()
 
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
+
 export function AuthUserProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-            if (authUser) {
-                try {
-                    const ref = doc(db, 'users', authUser.uid)
-                    const snap = await getDoc(ref)
-                    if (snap.exists()) {
-                        setCurrentUser(snap.data())
-                    } else {
-                        setCurrentUser({
-                            uid: authUser.uid,
-                            email: authUser.email,
-                            emailVerified: authUser.emailVerified,
-                        })
-                    }
-                } catch (err) {
-                    console.error('Error fetching user:', err)
-                    toast.error('Failed to fetch user data.')
-                }
-            } else {
-                setCurrentUser(null)
-            }
-            setLoading(false)
-        })
-
-        return () => unsubscribe()
-    }, [])
-
+    // Step 1:
+    // Keep the email/password locally until the user completes
+    // the remaining registration steps.
     const registerUser = async (email, password) => {
-        try {
-            const res = await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            )
-            const user = res.user
-            await sendEmailVerification(user)
-            toast.success(
-                'Verification email sent to your email! Please check your inbox.'
-            )
-
-            const ref = doc(db, 'users', user.uid)
-            const snap = await getDoc(ref)
-
-            if (snap.exists()) {
-                const existingData = snap.data()
-                setCurrentUser(existingData)
-                toast.success('Logged in successfully!')
-                return existingData
-            } else {
-                const userDoc = {
-                    uid: user.uid,
-                    email: user.email,
-                    emailVerified: user.emailVerified,
-                    anweshaId: null,
-                    createdAt: Date.now(),
-                    status: '1',
-                    personal: {},
-                    college: {},
-                    qrEnabled: false,
-                    qrTokenId: null,
-                    events: [],
-                }
-                await setDoc(ref, userDoc)
-                setCurrentUser(userDoc)
-                toast.success('Account created successfully!')
-                return userDoc
-            }
-        } catch (error) {
-            console.log('Auth error:', error)
-
-            if (error.code === 'auth/email-already-in-use') {
-                try {
-                    const res = await signInWithEmailAndPassword(
-                        auth,
-                        email,
-                        password
-                    )
-                    const user = res.user
-
-                    const ref = doc(db, 'users', user.uid)
-                    const snap = await getDoc(ref)
-
-                    if (snap.exists()) {
-                        const existingData = snap.data()
-                        setCurrentUser(existingData)
-                        toast.success('Logged in successfully!')
-                        return existingData
-                    } else {
-                        const userDoc = {
-                            uid: user.uid,
-                            email: user.email,
-                            emailVerified: user.emailVerified,
-                            anweshaId: null,
-                            createdAt: Date.now(),
-                            status: '1',
-                            personal: {},
-                            college: {},
-                            qrEnabled: false,
-                            qrTokenId: null,
-                            events: [],
-                        }
-                        await setDoc(ref, userDoc)
-                        setCurrentUser(userDoc)
-                        toast.success('Account synced successfully!')
-                        return userDoc
-                    }
-                } catch (signInError) {
-                    if (signInError.code === 'auth/wrong-password') {
-                        toast.error('Incorrect password. Please try again.')
-                    } else if (signInError.code === 'auth/user-not-found') {
-                        toast.error('No account found with this email.')
-                    } else {
-                        toast.error(
-                            signInError.message ||
-                                'Sign-in failed. Please try again.'
-                        )
-                    }
-                    return null
-                }
-            }
-
-            if (error.code === 'auth/invalid-email') {
-                toast.error('Invalid email address.')
-            } else if (error.code === 'auth/weak-password') {
-                toast.error(
-                    'Password is too weak. Use 8+ characters with letters and numbers.'
-                )
-            } else {
-                toast.error(
-                    error.message || 'Something went wrong. Please try again.'
-                )
-            }
-
-            return null
+        const user = {
+            uid: `pending_${Date.now()}`,
+            email,
+            password,
+            emailVerified: false,
+            personal: {},
+            college: {},
+            contact: {},
+            status: '1',
         }
+
+        setCurrentUser(user)
+
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('uid', user.uid)
+        }
+
+        return user
     }
 
+    // Update local registration state.
+    // Firebase/Firestore is no longer used here.
     const updateUser = async (uid, updatedData) => {
-        const ref = doc(db, 'users', uid)
-        await setDoc(ref, updatedData, { merge: true })
+        setCurrentUser((prev) => ({
+            ...(prev || {}),
+            ...updatedData,
+        }))
 
-        setCurrentUser((prev) => {
-            if (!prev) return updatedData
-            return { ...prev, ...updatedData }
-        })
-
-        return { ...currentUser, ...updatedData }
+        return {
+            ...(currentUser || {}),
+            ...updatedData,
+        }
     }
 
+    // Final registration:
+    // Send the complete registration data to the new backend.
     const finalizeRegistration = async (uid, formData) => {
-        const anweshaId = `ANW-MUL-${Math.floor(
-            100000 + Math.random() * 900000
-        )}`
-        await updateUser(uid, {
-            anweshaId,
-            status: 'successful',
-            ...formData,
-        })
-        return anweshaId
-    }
-
-    const loginUser = async (email, password) => {
-        try {
-            const res = await signInWithEmailAndPassword(auth, email, password)
-            let user = res.user
-            console.log(user)
-
-            await user.reload()
-            user = auth.currentUser
-
-            if (user.emailVerified) {
-                const userRef = doc(db, 'users', user.uid)
-                await updateDoc(userRef, { emailVerified: true })
-            } else {
-                toast.error('Please verify your email first.')
-                await sendEmailVerification(user)
-                throw new Error('Email not verified')
-            }
-
-            const userDoc = await getDoc(doc(db, 'users', res.user.uid))
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('uid', res.user.uid)
-            }
-
-            if (userDoc.exists()) {
-                const userData = userDoc.data()
-                if (userData.status != 'successful') {
-                    toast.error('Complete your registration first !')
-                    throw error
-                }
-                setCurrentUser(userData)
-                toast.success('Login Successful')
-                return userData
-            } else {
-                setCurrentUser(res.user)
-                return res.user
-            }
-        } catch (error) {
-            if (error) toast.error(error.message || 'error')
-            throw error
-        }
-    }
-
-    const handleSearchByAnweshaId = async (anweshaId) => {
-        try {
-            console.log('search')
-            const q = query(
-                collection(db, 'users'),
-                where('anweshaId', '==', anweshaId)
+        if (!currentUser?.email || !currentUser?.password) {
+            throw new Error(
+                'Registration session expired. Please start again.'
             )
-            const querySnapshot = await getDocs(q)
-
-            if (!querySnapshot.empty) {
-                const userData = querySnapshot.docs[0].data()
-                return userData
-            } else {
-                return null
-            }
-        } catch (error) {
-            console.error('Error searching user:', error)
-            return null
         }
+
+        const fullName = [
+            formData?.firstName,
+            formData?.lastName,
+        ]
+            .filter(Boolean)
+            .join(' ')
+
+        const payload = {
+            email_id: currentUser.email,
+            password: currentUser.password,
+            full_name: fullName,
+            phone_number: formData?.phone,
+            college_name: formData?.college?.name,
+            user_type: 'STUDENT',
+            gender: formData?.gender,
+            dob: formData?.dob,
+        }
+
+        const response = await fetch(`${host}/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        })
+
+        let result
+
+        try {
+            result = await response.json()
+        } catch {
+            throw new Error('Invalid response received from server.')
+        }
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message ||
+                    result.error ||
+                    'Registration failed. Please try again.'
+            )
+        }
+
+        const backendUser = {
+            ...currentUser,
+            ...formData,
+            uid: result.data?.user_id || currentUser.uid,
+            anweshaId: result.data?.anwesha_id || null,
+            status: 'successful',
+            email: result.data?.email_id || currentUser.email,
+        }
+
+        setCurrentUser(backendUser)
+
+        if (typeof window !== 'undefined') {
+            if (result.data?.user_id) {
+                localStorage.setItem('uid', result.data.user_id)
+            }
+        }
+
+        toast.success(
+            result.message || 'Registration completed successfully!'
+        )
+
+        return result.data?.anwesha_id || null
+    }
+
+    // New backend login.
+    const loginUser = async (email, password) => {
+        const response = await fetch(`${host}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email_id: email,
+                password,
+            }),
+        })
+
+        let result
+
+        try {
+            result = await response.json()
+        } catch {
+            throw new Error('Invalid response received from server.')
+        }
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message ||
+                    result.error ||
+                    'Login failed. Please try again.'
+            )
+        }
+
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(
+                'anwesha_token',
+                result.token
+            )
+
+            if (result.user?.user_id) {
+                localStorage.setItem(
+                    'uid',
+                    result.user.user_id
+                )
+            }
+        }
+
+        setCurrentUser(result.user)
+
+        return result.user
+    }
+
+    // Kept for compatibility with existing components.
+    const handleSearchByAnweshaId = async () => {
+        return null
     }
 
     return (

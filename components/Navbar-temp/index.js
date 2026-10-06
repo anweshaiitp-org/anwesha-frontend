@@ -6,7 +6,7 @@ import { AuthContext } from '../authContext'
 import { useRouter } from 'next/router'
 import Logo from '../Rive/logo'
 import { useRive, useStateMachineInput } from '@rive-app/react-canvas'
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 const STATE_MACHINE_NAME = 'Basic State Machine'
 const INPUT_NAME = 'Switch'
 

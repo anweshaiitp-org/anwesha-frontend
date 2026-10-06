@@ -565,6 +565,62 @@
     line-height: normal;
 }
 
+.special_events {
+    position: relative;
+    z-index: 2;
+    padding: 70px 6vw 30px;
+    pointer-events: auto;
+}
+
+.special_events_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 28px auto 0;
+}
+
+@media (max-width: 700px) {
+    .special_events_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.special_event_card {
+    position: relative;
+    z-index: 3;
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 0 0 14px;
+    background: rgba(10, 18, 48, .75);
+    color: inherit;
+    cursor: pointer;
+    pointer-events: auto;
+    text-align: left;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+}
+
+.special_event_poster {
+    position: relative;
+    min-height: 260px;
+    background-position: center;
+    background-size: cover;
+}
+
+.special_event_poster span {
+    display: block;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 12px 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .85));
+}
+
 .events_button {
     width: 100%;
     display: flex;

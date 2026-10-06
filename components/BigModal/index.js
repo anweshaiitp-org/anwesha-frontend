@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react'
 import { AuthContext } from '../authContext'
 import {
     soloEventRegistration,
-    soloEventRegistrationiitp,
+    soloEventRegistrationNew,
 } from '../Event Registration/soloEventRegistration'
 import { ToastContainer, toast } from 'react-toastify'
 import styles from './Modal.module.css'
@@ -15,54 +15,27 @@ const Modal = (props) => {
     const userData = useContext(AuthContext)
 
     const [isRegistering, setIsRegistering] = useState(false)
+    const [registrationResult, setRegistrationResult] = useState(null)
+
     async function handleRagister() {
+        if (isRegistering) return // prevent double-click
+
         if (userData.isAuth) {
             setIsRegistering(true)
             try {
                 if (props.body.is_active) {
                     if (props.body.is_solo) {
-                        if (
-                            userData.state.user.user_type !== 'iitp_student' ||
-                            props.body.id == 'EVT49870' ||
-                            props.body.id == 'EVT68cb3'
-                        ) {
-                            if (props.body.registration_fee === '0.00')
-                                await soloEventRegistrationiitp(
-                                    props.body.id,
-                                    router,
-                                    props.closeHandler
-                                )
-                            else
-                                await soloEventRegistration(
-                                    props.body.id,
-                                    props.body.registration_fee,
-                                    userData?.state.user.email_id,
-                                    userData?.state.user.phone_number,
-                                    userData?.state.user.anwesha_id,
-                                    router,
-                                    props.closeHandler
-                                )
-
-                        } else {
-                            if (props.body.tags === '5')
-                                await soloEventRegistration(
-                                    props.body.id,
-                                    props.body.registration_fee,
-                                    userData?.state.user.email_id,
-                                    userData?.state.user.phone_number,
-                                    userData?.state.user.anwesha_id,
-                                    router,
-                                    props.closeHandler
-                                )
-                            else
-                                await soloEventRegistrationiitp(
-                                    props.body.id,
-                                    router,
-                                    props.closeHandler
-                                )
+                        // Use the new unified registration endpoint
+                        const result = await soloEventRegistrationNew(
+                            props.body.id,
+                            router,
+                            props.closeHandler
+                        )
+                        if (result) {
+                            setRegistrationResult(result)
                         }
                     } else {
-                        // router.replace(props.body.registration_link)
+                        // Team event — navigate to team registration form
                         await router.push({
                             pathname: `/event-registration/${[props.body.id]}`,
                             query: {
@@ -110,21 +83,9 @@ const Modal = (props) => {
     }
 
 
-    let description = (props.body.description || '').replace(/\n/g, '<br />');
+    let description = (props.body.description || '').replace(/\\n/g, '<br />');
     return (
         <React.StrictMode>
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
             <div
                 id="backdrop"
                 className={styles.modal}
@@ -155,6 +116,47 @@ const Modal = (props) => {
                             marginBottom: '35px',
                         }}
                     />
+
+                    {/* Registration success result overlay */}
+                    {registrationResult && (
+                        <div className={styles.registration_success}>
+                            <div style={{
+                                fontSize: '22px',
+                                fontWeight: '600',
+                                color: '#0a7c42',
+                                marginBottom: '12px',
+                            }}>
+                                ✓ Registered Successfully
+                            </div>
+                            <div style={{
+                                fontSize: '16px',
+                                lineHeight: '1.8',
+                                color: '#010031',
+                            }}>
+                                {registrationResult.registration_id && (
+                                    <div><strong>Registration ID:</strong> {registrationResult.registration_id}</div>
+                                )}
+                                {registrationResult.payment_status && (
+                                    <div><strong>Payment Status:</strong> {registrationResult.payment_status}</div>
+                                )}
+                                {registrationResult.amount_due !== undefined && registrationResult.amount_due !== null && (
+                                    <div><strong>Amount Due:</strong> ₹{registrationResult.amount_due}</div>
+                                )}
+                            </div>
+                            <button
+                                className={styles.btn}
+                                style={{ marginTop: '20px', maxWidth: '200px' }}
+                                onClick={() => {
+                                    setRegistrationResult(null)
+                                    props.closeHandler()
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    )}
+
+                    {!registrationResult && (
                     <div
                         style={{
                             display: 'flex',
@@ -447,6 +449,7 @@ const Modal = (props) => {
                             </div>
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
         </React.StrictMode>

@@ -7,7 +7,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from '../authContext'
 import 'react-toastify/dist/ReactToastify.css'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const ChangePassword = () => {
     const context = useContext(AuthContext)
@@ -18,7 +18,7 @@ const ChangePassword = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-        let body = { token: router.query.slug, password: password }
+        let body = { token: router.query.slug || router.query.token, new_password: password }
         // user input validation
         if (password.length == 0) {
             toast.warning('Please fill password', {
@@ -46,8 +46,8 @@ const ChangePassword = () => {
             return
         }
         try {
-            const response = await fetch(`${host}/user/forgetpassword`, {
-                method: 'PUT',
+            const response = await fetch(`${host}/auth/reset-password`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },

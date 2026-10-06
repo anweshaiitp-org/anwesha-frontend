@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import styles from '../../styles/profile.module.css'
 
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 export default function VerifyEmail() {
     const router = useRouter()
@@ -22,7 +22,7 @@ export default function VerifyEmail() {
         setLoading(true)
         try {
             const response = await fetch(
-                `${host}/user/verifyemail/${token}`,
+                `${host}/auth/verify/${token}`,
                 {
                     method: 'POST',
                     headers: {

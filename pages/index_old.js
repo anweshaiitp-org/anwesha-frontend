@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
-import { DM_Serif_Display } from "next/font/google";
 // import Link from 'next/link'
 // import { Josefin_Sans } from '@next/font/google'
 // import HomeBackgroundAnimation from '../components/Rive/homeBackgrounAnim'
@@ -28,10 +27,7 @@ import HeroSection from '../components/Hero/Hero'
 // import Spline from '@splinetool/react-spline';
 import { useRouter } from 'next/router'
 
-const dmSerif = DM_Serif_Display({
-    subsets: ["latin"],
-    weight: "400",
-});
+const dmSerif = { className: 'font-dm-serif' };
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')
@@ -688,7 +684,7 @@ const IndexPage = () => {
     // events thingyy
     const [events, setEvents] = useState([])
     useEffect(() => {
-        let host = process.env.NEXT_PUBLIC_HOST
+        let host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
         async function callAPI() {
             try {

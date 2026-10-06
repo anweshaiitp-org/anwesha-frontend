@@ -139,7 +139,7 @@ const Events = () => {
         'https://drive.google.com/uc?export=view&id=1Y5m4LFHEMFWFDJPhsZSpIT02P0U8qU1e',
         'https://drive.google.com/uc?export=view&id=1wKHW-An6PKqP-wBUqPStms4IFg_sH5aR',
     ]
-    const host = process.env.NEXT_PUBLIC_HOST
+    const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const mediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE || host
     const [events, setEvents] = useState([])
     const [filteredEvents, setFilteredEvents] = useState([]) // Manages the filtered events
@@ -159,18 +159,17 @@ const Events = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const res = await fetch(`${host}/event/allevents`, {
+                const res = await fetch(`${host}/events`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                 })
                 const data = await res.json()
-                const normalized = Array.isArray(data)
-                    ? data.map((ev) => ({
+                const eventsArray = Array.isArray(data) ? data : (data.events || [])
+                const normalized = eventsArray.map((ev) => ({
                         ...ev,
-                        poster: makePosterUrl(ev.poster_file || ev.poster),
+                        poster: makePosterUrl(ev.poster_file || ev.poster || ev.poster_url),
                         name: ev.name || ev["Event Name"] || '',
                     }))
-                    : []
                 normalized.forEach((ev, idx) => {
                     console.log(`[Events] ${idx} poster:`, ev.poster)
                 })

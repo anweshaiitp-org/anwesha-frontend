@@ -1,5 +1,5 @@
 import '../styles/globals.css'
-import { Poppins } from 'next/font/google'
+import Head from 'next/head'
 import { Analytics } from '@vercel/analytics/react'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
@@ -23,10 +23,7 @@ import Navbar from '../components/Navbar-temp'
 
 import Footer from '../components/Footer/Footer.js'
 
-const poppins = Poppins({
-    weight: ['400', '600', '900', '100', '300', '500', '700', '800'],
-    subsets: ['latin'],
-})
+const poppins = { className: 'font-poppins' }
 function MyApp({ Component, pageProps }) {
     const router = useRouter()
     // const showHeader = router.pathname === '/ca-register' || '/ca-login' ? false : true;
@@ -40,6 +37,9 @@ function MyApp({ Component, pageProps }) {
     // }
     return (
         <main className={poppins.className} style={{ background: 'black' }}>
+            <Head>
+                <title>Anwesha 2026 | IIT Patna</title>
+            </Head>
             <AuthUserProvider>
                 {/* style={{ background: 'linear-gradient(169deg, #81D9FF -5.25%, #D4F2FF 111.03%)' }} */}
 

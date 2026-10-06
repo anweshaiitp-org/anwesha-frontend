@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false,
+    optimizeFonts: false,
     eslint: {
         ignoreDuringBuilds: true,
     },
@@ -15,6 +16,20 @@ const nextConfig = {
             { protocol: 'https', hostname: 'kvibbihar.com' },
         ],
 
+    },
+
+    async rewrites() {
+        const backendUrl = (
+            process.env.BACKEND_URL ||
+            'https://9vh9oqloa1.execute-api.localhost.localstack.cloud:4566/prod'
+        ).replace(/\/+$/, '')
+
+        return [
+            {
+                source: '/api/backend/:path*',
+                destination: `${backendUrl}/:path*`,
+            },
+        ]
     },
     async redirects() {
         return [

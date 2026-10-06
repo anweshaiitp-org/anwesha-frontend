@@ -9,7 +9,7 @@ import LeaderboardItem from '../components/Leaderboard/LeaderboardItem'
 import Items from '../components/Leaderboard/Items'
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
-const host = process.env.NEXT_PUBLIC_HOST
+const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function Leaderboard() {
     const [searchInput, setSearchInput] = useState('')
