@@ -16,7 +16,6 @@ import {
 /**
  * Task 4 — Student ID Verification & Review Flow.
  * Route: /submit-id?token=xxx (token comes from verification email).
- * UI reuses profile.module.css classes; no redesign.
  */
 export default function SubmitId() {
     const router = useRouter()
@@ -30,6 +29,7 @@ export default function SubmitId() {
     const [submitted, setSubmitted] = useState(false) // UPLOADED / pending-review
     const [verifiedStatus, setVerifiedStatus] = useState(null)
     const [formError, setFormError] = useState('')
+    const [dragActive, setDragActive] = useState(false)
 
     // Step 1: read token from query params; fall back to JWT auth token so
     // logged-in users can access the page directly without an email link.
@@ -57,6 +57,26 @@ export default function SubmitId() {
         setFormError('')
     }
 
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setFile(e.dataTransfer.files[0]);
+            setFormError('');
+        }
+    }
+
     const notify = (type, msg) => {
         if (type === 'success') toast.success(msg)
         else if (type === 'warn') toast.warning(msg)
@@ -69,7 +89,7 @@ export default function SubmitId() {
         setFormError('')
 
         if (!emailToken) {
-            const msg = 'Invalid or missing verification token. Please use the link from your email.'
+            const msg = 'Invalid token. Please use the link from your email.'
             setFormError(msg)
             notify('error', msg)
             return
@@ -112,6 +132,7 @@ export default function SubmitId() {
             const { uploadUrl, fileKey } = await requestUploadUrl({
                 file,
                 jwt: auth.token,
+                emailToken,
             })
             // Step 3: PUT binary to S3 (no JWT)
             await uploadFileToS3({ uploadUrl, file })
@@ -141,6 +162,8 @@ export default function SubmitId() {
         }
     }
 
+    const isTokenMissingOrInvalid = (!emailToken && router.isReady) || formError === 'Invalid token.'
+
     return (
         <>
             <Head>
@@ -154,18 +177,20 @@ export default function SubmitId() {
                         style={{
                             position: 'relative',
                             zIndex: 1,
-                            maxWidth: 640,
+                            maxWidth: 800,
                             margin: '40px auto',
-                            padding: '28px',
-                            background: 'rgba(0,0,0,0.65)',
+                            padding: '40px 32px',
+                            background: 'rgba(0,0,0,0.75)',
                             border: '1px solid #F2BF51',
-                            borderRadius: 10,
+                            borderRadius: 16,
+                            backdropFilter: 'blur(10px)',
+                            boxShadow: '0 8px 32px rgba(242, 191, 81, 0.1)',
                         }}
                     >
-                        <h1 style={{ color: '#F2BF51', marginBottom: 8 }}>
+                        <h1 style={{ color: '#F2BF51', marginBottom: 12, fontSize: '2.5rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '2px' }}>
                             Student ID Verification
                         </h1>
-                        <p style={{ color: '#fff', marginBottom: 20 }}>
+                        <p style={{ color: '#fff', marginBottom: 28, fontSize: '1.1rem', textAlign: 'center' }}>
                             {submitted || verifiedStatus === 'UPLOADED'
                                 ? 'Your document is submitted and pending review by the team.'
                                 : verifiedStatus === 'VERIFIED'
@@ -173,97 +198,148 @@ export default function SubmitId() {
                                   : 'Upload your student ID for review.'}
                         </p>
 
-                        {!emailToken && !auth?.token && (
-                            <p style={{ color: '#ff8888', marginBottom: 16 }}>
-                                Missing verification token. Please{' '}
-                                <a href="/userLogin" style={{ color: '#F2BF51' }}>log in</a>{' '}
-                                or open the link from your email ( /submit-id?token=xxx ).
-                            </p>
-                        )}
-
-                        {formError && (
-                            <p style={{ color: '#ff8888', marginBottom: 16 }}>
-                                {formError}
-                            </p>
-                        )}
-
-                        {submitted || verifiedStatus === 'VERIFIED' || verifiedStatus === 'UPLOADED' ? (
-                            <div style={{ color: '#fff' }}>
-                                <p>
-                                    Status:{' '}
-                                    <strong style={{ color: '#F2BF51' }}>
-                                        {submitted ? 'UPLOADED (pending review)' : verifiedStatus}
-                                    </strong>
-                                </p>
-                                <p style={{ marginTop: 8, color: '#ccc' }}>
-                                    Uploading again does not mean verified. Please
-                                    wait for the team review.
+                        {isTokenMissingOrInvalid ? (
+                            <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(255, 0, 0, 0.1)', borderRadius: '10px', border: '1px solid #ff8888' }}>
+                                <svg style={{ width: 64, height: 64, color: '#ff8888', margin: '0 auto 16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <h2 style={{ color: '#ff8888', marginBottom: 12 }}>Invalid or Missing Token</h2>
+                                <p style={{ color: '#fff', fontSize: '1.1rem' }}>
+                                    Please <a href="/userLogin" style={{ color: '#F2BF51', textDecoration: 'underline' }}>log in</a> or open the secure link from your email to verify your identity.
                                 </p>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit}>
-                                <div style={{ marginBottom: 14 }}>
-                                    <label style={{ color: '#F2BF51' }}>ID Type</label>
-                                    <br />
-                                    <select
-                                        value={idType}
-                                        onChange={(ev) => setIdType(ev.target.value)}
-                                        disabled={submitting}
-                                        style={{ width: '100%', padding: '10px', marginTop: 6 }}
-                                    >
-                                        {ID_CARD_TYPES.map((t) => (
-                                            <option key={t} value={t}>
-                                                {t}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div style={{ marginBottom: 14 }}>
-                                    <label style={{ color: '#F2BF51' }}>ID Card Number</label>
-                                    <br />
-                                    <input
-                                        type="text"
-                                        value={idNumber}
-                                        onChange={(ev) => setIdNumber(ev.target.value)}
-                                        placeholder="e.g. 2201CS01"
-                                        disabled={submitting}
-                                        style={{ width: '100%', padding: '10px', marginTop: 6 }}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: 14 }}>
-                                    <label style={{ color: '#F2BF51' }}>
-                                        ID Document (PDF / JPG / PNG, max 5MB)
-                                    </label>
-                                    <br />
-                                    <input
-                                        type="file"
-                                        accept="application/pdf,image/jpeg,image/png"
-                                        onChange={handleFileChange}
-                                        disabled={submitting}
-                                        style={{ marginTop: 6, color: '#fff' }}
-                                    />
-                                    {file && (
-                                        <p style={{ color: '#ccc', marginTop: 6 }}>
-                                            Selected: {file.name} ({Math.round(file.size / 1024)} KB)
+                            <>
+                                {formError && (
+                                    <div style={{ background: 'rgba(255, 0, 0, 0.1)', border: '1px solid #ff8888', padding: '16px', borderRadius: 8, marginBottom: 24, textAlign: 'center' }}>
+                                        <p style={{ color: '#ff8888', margin: 0, fontWeight: '500', fontSize: '1.1rem' }}>
+                                            {formError}
                                         </p>
-                                    )}
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={submitting || (!emailToken && !auth?.token)}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: submitting ? '#666' : '#F2BF51',
-                                        color: '#000',
-                                        border: 'none',
-                                        borderRadius: 5,
-                                        cursor: submitting ? 'not-allowed' : 'pointer',
-                                        fontWeight: 'bold',
-                                    }}
-                                >
-                                    {submitting ? 'Submitting…' : 'Submit for Review'}
-                                </button>
-                            </form>
+                                    </div>
+                                )}
+                                
+                                {submitted && !formError && (
+                                    <div style={{ background: 'rgba(0, 255, 0, 0.1)', border: '1px solid #4caf50', padding: '16px', borderRadius: 8, marginBottom: 24, textAlign: 'center' }}>
+                                        <p style={{ color: '#4caf50', margin: 0, fontWeight: '500', fontSize: '1.1rem' }}>
+                                            Identity card submitted successfully!
+                                        </p>
+                                    </div>
+                                )}
+
+                                {submitted || verifiedStatus === 'VERIFIED' || verifiedStatus === 'UPLOADED' ? (
+                                    <div style={{ color: '#fff', textAlign: 'center', padding: '20px' }}>
+                                        <p style={{ fontSize: '1.2rem' }}>
+                                            Status:{' '}
+                                            <strong style={{ color: '#F2BF51', fontSize: '1.4rem' }}>
+                                                {submitted ? 'UPLOADED (pending review)' : verifiedStatus}
+                                            </strong>
+                                        </p>
+                                        <p style={{ marginTop: 12, color: '#ccc', fontSize: '1rem' }}>
+                                            Uploading again does not mean verified. Please wait for the team review.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                        <div>
+                                            <label style={{ color: '#F2BF51', fontSize: '1.1rem', fontWeight: 'bold' }}>ID Type</label>
+                                            <select
+                                                value={idType}
+                                                onChange={(ev) => setIdType(ev.target.value)}
+                                                disabled={submitting}
+                                                style={{ width: '100%', padding: '14px', marginTop: 10, background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '8px', fontSize: '1.05rem', outline: 'none' }}
+                                            >
+                                                {ID_CARD_TYPES.map((t) => (
+                                                    <option key={t} value={t}>
+                                                        {t.replace('_', ' ')}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label style={{ color: '#F2BF51', fontSize: '1.1rem', fontWeight: 'bold' }}>ID Card Number</label>
+                                            <input
+                                                type="text"
+                                                value={idNumber}
+                                                onChange={(ev) => setIdNumber(ev.target.value)}
+                                                placeholder="e.g. 2201CS01"
+                                                disabled={submitting}
+                                                style={{ width: '100%', padding: '14px', marginTop: 10, background: '#111', color: '#fff', border: '1px solid #333', borderRadius: '8px', fontSize: '1.05rem', outline: 'none' }}
+                                            />
+                                        </div>
+                                        
+                                        <div>
+                                            <label style={{ color: '#F2BF51', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                                ID Document (PDF / JPG / PNG, max 5MB)
+                                            </label>
+                                            <div
+                                                onDragEnter={handleDrag}
+                                                onDragLeave={handleDrag}
+                                                onDragOver={handleDrag}
+                                                onDrop={handleDrop}
+                                                style={{
+                                                    marginTop: 10,
+                                                    padding: '40px 20px',
+                                                    border: dragActive ? '2px dashed #F2BF51' : '2px dashed #444',
+                                                    background: dragActive ? 'rgba(242, 191, 81, 0.1)' : '#111',
+                                                    borderRadius: '12px',
+                                                    textAlign: 'center',
+                                                    transition: 'all 0.2s ease',
+                                                    cursor: 'pointer',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                <input
+                                                    type="file"
+                                                    accept="application/pdf,image/jpeg,image/png"
+                                                    onChange={handleFileChange}
+                                                    disabled={submitting}
+                                                    style={{ 
+                                                        position: 'absolute', 
+                                                        top: 0, 
+                                                        left: 0, 
+                                                        width: '100%', 
+                                                        height: '100%', 
+                                                        opacity: 0, 
+                                                        cursor: 'pointer' 
+                                                    }}
+                                                />
+                                                <svg style={{ width: 48, height: 48, color: '#F2BF51', margin: '0 auto 12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                                {file ? (
+                                                    <p style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>
+                                                        <strong style={{ color: '#F2BF51' }}>Selected:</strong> {file.name} ({Math.round(file.size / 1024)} KB)
+                                                    </p>
+                                                ) : (
+                                                    <p style={{ color: '#ccc', fontSize: '1.1rem', margin: 0 }}>
+                                                        Drag and drop your file here, or click to browse
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <button
+                                            type="submit"
+                                            disabled={submitting || (!emailToken && !auth?.token)}
+                                            style={{
+                                                padding: '16px 24px',
+                                                background: submitting ? '#666' : 'linear-gradient(90deg, #F2BF51 0%, #d49c25 100%)',
+                                                color: '#000',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: submitting ? 'not-allowed' : 'pointer',
+                                                fontWeight: 'bold',
+                                                fontSize: '1.2rem',
+                                                marginTop: '10px',
+                                                boxShadow: submitting ? 'none' : '0 4px 15px rgba(242, 191, 81, 0.4)',
+                                                transition: 'transform 0.1s ease',
+                                            }}
+                                            onMouseDown={e => { if(!submitting) e.currentTarget.style.transform = 'scale(0.98)' }}
+                                            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        >
+                                            {submitting ? 'Submitting...' : 'Submit for Review'}
+                                        </button>
+                                    </form>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
