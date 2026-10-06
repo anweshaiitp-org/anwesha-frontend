@@ -268,7 +268,7 @@ export default function SubmitId() {
                                         
                                         <div>
                                             <label style={{ color: '#F2BF51', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                                                ID Document (PDF / JPG / PNG, max 5MB)
+                                                ID Document <span style={{ color: '#ccc', fontWeight: 'normal', fontSize: '0.95rem' }}>(PDF only, max 5MB)</span>
                                             </label>
                                             <div
                                                 onDragEnter={handleDrag}
@@ -289,7 +289,7 @@ export default function SubmitId() {
                                             >
                                                 <input
                                                     type="file"
-                                                    accept="application/pdf,image/jpeg,image/png"
+                                                    accept="application/pdf"
                                                     onChange={handleFileChange}
                                                     disabled={submitting}
                                                     style={{ 
@@ -309,7 +309,7 @@ export default function SubmitId() {
                                                     </p>
                                                 ) : (
                                                     <p style={{ color: '#ccc', fontSize: '1.1rem', margin: 0 }}>
-                                                        Drag and drop your file here, or click to browse
+                                                        Drag and drop your <strong style={{ color: '#F2BF51' }}>PDF</strong> here, or click to browse
                                                     </p>
                                                 )}
                                             </div>
