@@ -1,112 +1,101 @@
-import React, { useContext } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styles from './style.module.css'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
-import { AuthContext } from '../authContext'
 import 'react-toastify/dist/ReactToastify.css'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
+const cn = (...classes) => {
+    return classes.filter(Boolean).join(' ')
+}
+
 const ChangePassword = () => {
-    const context = useContext(AuthContext)
     const router = useRouter()
-    const [password, setPassword] = React.useState('')
-    const [cnfPassword, setCnfPassword] = React.useState('')
-    const [passwordShown, setPasswordShown] = React.useState(false)
+    const [password, setPassword] = useState('')
+    const [cnfPassword, setCnfPassword] = useState('')
+    const [passwordShown, setPasswordShown] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-        let body = { token: router.query.slug || router.query.token, new_password: password }
-        // user input validation
-        if (password.length == 0) {
-            toast.warning('Please fill password', {
+
+        const resetToken =
+            router.query.token ||
+            router.query.slug ||
+            (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '')
+
+        if (!resetToken) {
+            toast.error('Reset token is missing.', {
                 position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
+                theme: 'light',
+            })
+            return
+        }
+
+        if (!password || !cnfPassword) {
+            toast.warning('Please fill all password fields', {
+                position: 'top-right',
                 theme: 'light',
             })
             return
         } else if (password !== cnfPassword) {
             toast.warning('Passwords do not match', {
                 position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
+                theme: 'light',
+            })
+            return
+        } else if (password.length < 6) {
+            toast.error('Password must be at least 6 characters long', {
+                position: 'top-right',
                 theme: 'light',
             })
             return
         }
+
+        setLoading(true)
+
         try {
             const response = await fetch(`${host}/auth/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(body),
+                body: JSON.stringify({
+                    token: resetToken,
+                    password: password,
+                    new_password: password,
+                }),
             })
 
-            //check if request is successful
-            if (response.status === 200 || response.status === 201) {
-                toast.success('Password reset successfully!', {
+            const data = await response.json()
+            setLoading(false)
+
+            if (response.status === 200 || data.success) {
+                toast.success('Password reset successfully! Redirecting to login...', {
                     position: 'top-right',
                     autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
                     theme: 'light',
                 })
-                router.push('/userLogin')
-            } else if (response.status === 409) {
-                const data = await response.json()
-                toast.error(data.message || 'Unable to reset password', {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                })
+                setTimeout(() => {
+                    router.push('/userLogin')
+                }, 2000)
             } else {
-                const data = await response.json()
-                toast.error(data.message, {
+                toast.error(data.message || 'Unable to reset password. The link may have expired.', {
                     position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
+                    autoClose: 4000,
                     theme: 'light',
                 })
             }
         } catch (err) {
-            console.log(err)
-            toast.error(
-                'Password reset failed. Check your internet connection',
-                {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                }
-            )
+            console.error('[ResetPassword] Error:', err)
+            setLoading(false)
+            toast.error('Password reset failed. Check your internet connection.', {
+                position: 'top-right',
+                theme: 'light',
+            })
         }
     }
 
@@ -138,7 +127,7 @@ const ChangePassword = () => {
                     whileInView={{ opacity: 1, x: '0%' }}
                     transition={{ duration: 1 }}
                 >
-                    <h2   className={styles.register_page_heading} >
+                    <h2 className={styles.register_page_heading}>
                         Password Reset
                     </h2>
                     <hr />
@@ -149,21 +138,25 @@ const ChangePassword = () => {
                             <input
                                 type={passwordShown ? 'text' : 'password'}
                                 name="Password"
-                                // placeholder="Password"
+                                placeholder="New password"
+                                value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                disabled={loading}
                             />
                             <br />
                         </div>
                         <div className={styles.field}>
-                            <label htmlFor="password">Confirm Password</label>
+                            <label htmlFor="confirm_password">Confirm Password</label>
                             <br />
                             <input
                                 type={passwordShown ? 'text' : 'password'}
-                                name="Password"
-                                // placeholder="Confirm Password"
+                                name="confirm_password"
+                                placeholder="Confirm password"
+                                value={cnfPassword}
                                 onChange={(e) => setCnfPassword(e.target.value)}
                                 required
+                                disabled={loading}
                             />
                             <br />
                         </div>
@@ -174,20 +167,22 @@ const ChangePassword = () => {
                             flexDirection: 'row',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
                         }}
+                        onClick={() => setPasswordShown((prev) => !prev)}
                     >
                         <input
                             type="checkbox"
+                            checked={passwordShown}
+                            onChange={(e) => setPasswordShown(e.target.checked)}
                             style={{
-                                width: '20px',
-                                height: '20px',
-                                margin: '5px',
+                                width: '16px',
+                                height: '16px',
+                                cursor: 'pointer',
                             }}
-                            onClick={() => {
-                                setPasswordShown((prev) => !prev)
-                            }}
-                        />{' '}
-                        Show Password
+                        />
+                        <label style={{ cursor: 'pointer' }}>Show Password</label>
                     </div>
 
                     <div
@@ -203,18 +198,19 @@ const ChangePassword = () => {
                             href="/userLogin"
                             style={{ color: '#ffffff', fontWeight: 300 }}
                         >
-                            Login here
+                            Back to Login
                         </Link>
                     </div>
-                    <motion.div
-                        className={styles.buttonWrapper}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.8 }}
-                    >
-                        <button type="submit" onClick={(e) => handleSubmit(e)}>
-                            SUBMIT
+                    <div className={styles.hero_button}>
+                        <button
+                            type="submit"
+                            className={cn(styles.register_button)}
+                            onClick={handleSubmit}
+                            disabled={loading}
+                        >
+                            {loading ? 'RESETTING...' : 'SUBMIT'}
                         </button>
-                    </motion.div>
+                    </div>
                 </motion.form>
             </div>
         </div>
