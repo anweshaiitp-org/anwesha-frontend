@@ -13,7 +13,7 @@ const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function VerifyEmailDynamicPage() {
+export default function VerifyEmailPage() {
     const router = useRouter()
     const [status, setStatus] = useState('checking') // 'checking' | 'verifying' | 'success' | 'error' | 'missing_token'
     const [message, setMessage] = useState('')
@@ -79,16 +79,18 @@ export default function VerifyEmailDynamicPage() {
 
     useEffect(() => {
         if (router.isReady && !verificationAttempted.current) {
-            const pathToken = router.query.token || (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '')
-            if (pathToken && pathToken !== '[token]') {
+            // Check query param (?token=xyz) or pathname
+            const queryToken = router.query.token
+            if (queryToken) {
                 verificationAttempted.current = true
-                verifyToken(pathToken)
+                verifyToken(queryToken)
             } else {
+                // Check if token is in window.location.search as fallback
                 const urlParams = new URLSearchParams(window.location.search)
-                const queryToken = urlParams.get('token')
-                if (queryToken) {
+                const fallbackToken = urlParams.get('token')
+                if (fallbackToken) {
                     verificationAttempted.current = true
-                    verifyToken(queryToken)
+                    verifyToken(fallbackToken)
                 } else {
                     setStatus('missing_token')
                     setMessage('Verification token is missing. Please check your email link or request a new one.')
@@ -215,7 +217,7 @@ export default function VerifyEmailDynamicPage() {
                                         <div className={styles.hero_button}>
                                             <Link href="/">
                                                 <button className={cn(styles.register_button)}>
-                                                     Home page
+                                                    Home Page
                                                 </button>
                                             </Link>
                                         </div>
@@ -273,17 +275,4 @@ export default function VerifyEmailDynamicPage() {
             </div>
         </>
     )
-}
-
-export async function getStaticPaths() {
-    return {
-        paths: [],
-        fallback: 'blocking',
-    }
-}
-
-export async function getStaticProps() {
-    return {
-        props: {},
-    }
 }

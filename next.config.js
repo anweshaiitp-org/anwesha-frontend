@@ -22,8 +22,8 @@ const nextConfig = {
         const backendUrl = (
             process.env.BACKEND_URL ||
             process.env.NEXT_PUBLIC_API_URL ||
-            'https://9vh9oqloa1.execute-api.localhost.localstack.cloud:4566/prod'
-        ).replace(/\/+$/, '')
+            'https://oojebz6o4l.execute-api.localhost.localstack.cloud:4566/prod'
+        ).trim().replace(/\/+$/, '')
 
         return [
             {
