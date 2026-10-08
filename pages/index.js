@@ -729,7 +729,7 @@ const IndexPage = () => {
                     },
                 })
                 const data = await res.json()
-                const eventList = data.events || data || []
+                const eventList = Array.isArray(data?.events) ? data.events : (Array.isArray(data) ? data : [])
                 setEvents(eventList)
 
                 const specialRes = await fetch(`${host}/events/special`, {
