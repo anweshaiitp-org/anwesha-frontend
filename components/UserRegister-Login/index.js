@@ -83,34 +83,42 @@ const UserRegisterForm = () => {
                 body: JSON.stringify(body),
             })
 
-            const data = await response.json()
-            setLoading(false)
-
             if (response.status === 201 || response.status === 200) {
                 toast.success('Verify your email to complete registration! Redirecting...', {
                     position: 'top-right',
                     autoClose: 2000,
                     theme: 'light',
                 })
-
-                router.push({
-                    pathname: '/send-verification',
-                    query: { email: body.email_id }
-                }, '/send-verification')
-                
-            } else if (response.status === 409 && data.message.includes('not verified')) {
-                // Intercept the unverified email state and redirect them to the resend page
-                toast.info('Account exists but is unverified. Redirecting...', {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    theme: 'light',
-                })
-                
-                router.push({
-                    pathname: '/send-verification',
-                    query: { email: body.email_id }
-                }, '/send-verification')
-
+                router.push(email ? `/check_email?email=${encodeURIComponent(email)}` : '/check_email')
+            } else if (response.status === 409) {
+                const data = await response.json()
+                setLoading(false)
+                // Check for Aadhaar-specific errors
+                const errorMessage = data.message || 'Unable to register'
+                if (errorMessage.toLowerCase().includes('aadhaar')) {
+                    toast.error(errorMessage, {
+                        position: 'top-right',
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: 'light',
+                    })
+                } else {
+                    toast.error(errorMessage, {
+                        position: 'top-right',
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: 'light',
+                    })
+                }
+>>>>>>> dfdcf4e (feat: implement dynamic email verification flow and check email UI)
             } else {
                 const errorMessage = data.message || 'Registration failed. Please try again.'
                 toast.error(errorMessage, {

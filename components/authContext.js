@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
+const host = process.env.NEXT_PUBLIC_HOST || process.env.NEXT_PUBLIC_BACKEND_URL || '/api/backend'
 
 const AuthContext = React.createContext()
 const { Provider } = AuthContext
