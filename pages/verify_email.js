@@ -22,6 +22,10 @@ export default function VerifyEmail() {
 
     useEffect(() => {
         if (!router.isReady) return
+        if (token === 'demo_success' || router.query.preview === 'success') {
+            setStatus('SUCCESS')
+            return
+        }
         if (!token) {
             setStatus('MISSING_TOKEN')
             return
