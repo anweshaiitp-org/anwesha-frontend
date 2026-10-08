@@ -24,8 +24,8 @@ const UserRegisterForm = () => {
     const [dob, setDob] = useState('')
     const [referralCode, setReferralCode] = useState('')
     const [passwordShown, setPasswordShown] = useState(false)
-    const [usertype, setUserType] = useState('student')
-    const [college_name, setCollegeName] = useState('')
+    const [usertype, setUserType] = useState('IITP_STUDENT')
+    const [college_name, setCollegeName] = useState('IIT Patna')
     const [loading, setLoading] = useState(false)
 
     const handleSubmit = async (event) => {
@@ -34,7 +34,7 @@ const UserRegisterForm = () => {
         if (name.length < 5) {
             toast.warning('Username is too short', { position: 'top-right', theme: 'light' })
             return
-        } else if (usertype === 'iitp_student' && email.match(/\dres\d/)) {
+        } else if ((usertype === 'iitp_student' || usertype === 'IITP_STUDENT') && email.match(/\dres\d/)) {
             toast.error('Online IITP students fall under the standard "student" type', { position: 'top-right', theme: 'light' })
             return
         } else if (password !== cnfPassword) {
@@ -57,7 +57,7 @@ const UserRegisterForm = () => {
         let isproff = ''
         for (let i = 0; i < details.length; i++) {
             if (details[i].webmail === email) {
-                isproff = 'faculty'
+                isproff = 'FACULTY'
                 setCollegeName('IIT Patna')
             }
         }
@@ -67,16 +67,15 @@ const UserRegisterForm = () => {
             full_name: name,
             email_id: email.toLowerCase(),
             password: password,
-            college_name: usertype === 'iitp_student' ? 'IIT Patna' : college_name,
+            college_name: (usertype === 'iitp_student' || usertype === 'IITP_STUDENT' || isproff) ? 'IIT Patna' : college_name,
             gender: gender,
             dob: dob,
-            user_type: isproff ? isproff : usertype,
+            user_type: isproff ? isproff : (usertype === 'iitp_student' || usertype === 'IITP_STUDENT' ? 'STUDENT' : usertype),
             referral_code: referralCode ? referralCode : undefined,
         }
 
         try {
             setLoading(true)
-
             const response = await fetch(`${host}/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -84,6 +83,7 @@ const UserRegisterForm = () => {
             })
 
             if (response.status === 201 || response.status === 200) {
+                setLoading(false)
                 toast.success('Verify your email to complete registration! Redirecting...', {
                     position: 'top-right',
                     autoClose: 2000,
@@ -93,37 +93,19 @@ const UserRegisterForm = () => {
             } else if (response.status === 409) {
                 const data = await response.json()
                 setLoading(false)
-                // Check for Aadhaar-specific errors
                 const errorMessage = data.message || 'Unable to register'
-                if (errorMessage.toLowerCase().includes('aadhaar')) {
-                    toast.error(errorMessage, {
-                        position: 'top-right',
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: 'light',
-                    })
-                } else {
-                    toast.error(errorMessage, {
-                        position: 'top-right',
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                        theme: 'light',
-                    })
-                }
->>>>>>> dfdcf4e (feat: implement dynamic email verification flow and check email UI)
+                toast.error(errorMessage, {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    theme: 'light',
+                })
             } else {
+                const data = await response.json()
+                setLoading(false)
                 const errorMessage = data.message || 'Registration failed. Please try again.'
                 toast.error(errorMessage, {
                     position: 'top-right',
-                    autoClose: 5000,
+                    autoClose: 3000,
                     theme: 'light',
                 })
             }
@@ -145,6 +127,7 @@ const UserRegisterForm = () => {
                 initial={{ opacity: 0, x: '-20%' }}
                 whileInView={{ opacity: 1, x: '0%' }}
                 transition={{ duration: 1 }}
+                onSubmit={handleSubmit}
             >
                 <div className={styles.container}>
                     <div className={styles.form}>
@@ -178,7 +161,7 @@ const UserRegisterForm = () => {
                                 onChange={(e) => {
                                     const selectedType = e.target.value
                                     setUserType(selectedType)
-                                    if (selectedType === 'iitp_student') {
+                                    if (selectedType === 'iitp_student' || selectedType === 'IITP_STUDENT') {
                                         setEmail('')
                                         setCollegeName('IIT Patna')
                                     } else {
@@ -188,11 +171,11 @@ const UserRegisterForm = () => {
                                 required
                                 style={{ color: 'white', padding: '0px 20px' }}
                             >
-                                <option value="iitp_student">IITP Student</option>
-                                <option value="student">Student</option>
-                                <option value="non-student">Non-Student</option>
-                                <option value="alumni">Alumni</option>
-                                <option value="faculty">Faculty</option>
+                                <option value="IITP_STUDENT">IITP Student</option>
+                                <option value="STUDENT">Student</option>
+                                <option value="NON_STUDENT">Non-Student</option>
+                                <option value="ALUMNI">Alumni</option>
+                                <option value="FACULTY">Faculty</option>
                             </select>
                         </div>
 
@@ -200,15 +183,15 @@ const UserRegisterForm = () => {
                             <label htmlFor="email_id">Email ID</label>
                             <br />
                             <input
-                                type="email"
+                                type={(usertype === 'iitp_student' || usertype === 'IITP_STUDENT') ? 'text' : 'email'}
                                 name="Email_Id"
                                 placeholder={
-                                    usertype === 'iitp_student'
+                                    (usertype === 'iitp_student' || usertype === 'IITP_STUDENT')
                                         ? 'Eg: anish_2301mc40'
                                         : 'Eg: aniskum59431@gmail.com'
                                 }
                                 onChange={(e) => {
-                                    if (usertype === 'iitp_student') {
+                                    if (usertype === 'iitp_student' || usertype === 'IITP_STUDENT') {
                                         setEmail(e.target.value.toLowerCase() + '@iitp.ac.in')
                                     } else {
                                         setEmail(e.target.value)
@@ -216,12 +199,12 @@ const UserRegisterForm = () => {
                                 }}
                                 required
                                 value={
-                                    usertype === 'iitp_student' && email
+                                    (usertype === 'iitp_student' || usertype === 'IITP_STUDENT') && email
                                         ? email.replace('@iitp.ac.in', '')
                                         : email
                                 }
                             />
-                            {usertype === 'iitp_student' && (
+                            {(usertype === 'iitp_student' || usertype === 'IITP_STUDENT') && (
                                 <span className={styles.iitp_email_ext}>@iitp.ac.in</span>
                             )}
                         </div>
@@ -338,7 +321,8 @@ const UserRegisterForm = () => {
 
                         <div className={styles.hero_button}>
                             <button
-                                onClick={handleSubmit}
+                                type="submit"
+                                disabled={loading}
                                 className={cn(styles.register_button)}
                                 style={loading ? { letterSpacing: '-0.1ch' } : {}}
                             >
