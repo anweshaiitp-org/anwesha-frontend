@@ -464,7 +464,7 @@ const EventSlider = ({
                         transition:
                             'transform .15s linear, width .15s linear, height .15s linear', // Smooth transition
                     }}
-                    onClick={() => router.push(`/events/${image.id}`)}
+                    onClick={() => window.open(`/events/${image.id}`, '_blank')}
                 />
             ))}
         </div>
@@ -755,6 +755,7 @@ const IndexPage = () => {
                 event.poster_file || event.poster || '/events/poster.png'
             console.log(`[HomePage] Event ${idx} poster:`, posterUrl)
             return {
+                id: event.id || event._id,
                 url: posterUrl,
                 title: event.name.split('#')[0],
                 body: event.name.split('#')[1],
@@ -954,48 +955,50 @@ const IndexPage = () => {
 
                 <div className={styles.fixed_bg}>
                     {/* Events */}
-                    <section className={styles.events}>
-                        <div className={styles.events_title}>
-                            <div>
-                                <h2 className={dmSerif.className}>
-                                    Explore the Events
-                                </h2>
+                    {events.length > 0 && (
+                        <section className={styles.events}>
+                            <div className={styles.events_title}>
+                                <div>
+                                    <h2 className={dmSerif.className}>
+                                        Explore the Events
+                                    </h2>
+                                </div>
                             </div>
-                        </div>
-                        <div className={styles.events_images_parent}>
-                            <button
-                                className={styles.bat_scroll_button}
-                                onClick={nextEventImage}
-                            >
-                                <BatLeft />
-                            </button>
-                            <EventSlider
-                                images={pseudoEventImage}
-                                currIndex={eventActiveImageIndex}
-                                nextEventImage={nextEventImage}
-                                previouseEventImage={previouseEventImage}
-                            />
-                            <button
-                                className={styles.bat_scroll_button}
-                                onClick={previouseEventImage}
-                            >
-                                <BatRight />
-                            </button>
-                        </div>
-                        <div className={styles.events_button}>
-                            <button
-                                className={cn(
-                                    styles.sexy_button,
-                                    styles.sexy_button_small
-                                )}
-                                onClick={() => {
-                                    router.push('/events')
-                                }}
-                            >
-                                VIEW MORE
-                            </button>
-                        </div>
-                    </section>
+                            <div className={styles.events_images_parent}>
+                                <button
+                                    className={styles.bat_scroll_button}
+                                    onClick={nextEventImage}
+                                >
+                                    <BatLeft />
+                                </button>
+                                <EventSlider
+                                    images={pseudoEventImage}
+                                    currIndex={eventActiveImageIndex}
+                                    nextEventImage={nextEventImage}
+                                    previouseEventImage={previouseEventImage}
+                                />
+                                <button
+                                    className={styles.bat_scroll_button}
+                                    onClick={previouseEventImage}
+                                >
+                                    <BatRight />
+                                </button>
+                            </div>
+                            <div className={styles.events_button}>
+                                <button
+                                    className={cn(
+                                        styles.sexy_button,
+                                        styles.sexy_button_small
+                                    )}
+                                    onClick={() => {
+                                        router.push('/events')
+                                    }}
+                                >
+                                    VIEW MORE
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Special Events */}
                     {specialEvents.length > 0 && (
@@ -1011,10 +1014,7 @@ const IndexPage = () => {
                                     return (
                                         <button type="button" className={styles.special_event_card}
                                             key={event.id || event._id || `${title}-${index}`}
-                                            onClick={() => setSelectedSpecialEvent({
-                                                ...event,
-                                                poster: event.poster || event.poster_file || event.poster_url,
-                                            })}>
+                                            onClick={() => window.open(`/events/${event.id || event._id}`, '_blank')}>
                                             <div className={styles.special_event_poster}
                                                 style={{ backgroundImage: `url(${poster})` }}>
                                                 <span>{title.split('#')[0]}</span>
