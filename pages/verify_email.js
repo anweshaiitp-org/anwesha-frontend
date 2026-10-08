@@ -22,7 +22,10 @@ export default function VerifyEmail() {
 
     useEffect(() => {
         if (!router.isReady) return
-        if (router.query.preview === 'success' || token === 'demo_success') {
+
+        const activeToken = token || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null)
+
+        if (router.query.preview === 'success' || activeToken === 'demo_success') {
             setStatus('SUCCESS')
             return
         }
@@ -34,7 +37,7 @@ export default function VerifyEmail() {
             setStatus('ERROR')
             return
         }
-        if (!token) {
+        if (!activeToken) {
             setStatus('MISSING_TOKEN')
             return
         }
@@ -42,19 +45,20 @@ export default function VerifyEmail() {
         const verifyToken = async () => {
             try {
                 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
-                const response = await fetch(`${host}/auth/verify/${token}`, {
+                const response = await fetch(`${host}/auth/verify/${encodeURIComponent(activeToken)}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 })
                 const data = await response.json().catch(() => ({}))
                 const message = (data.message || '').toLowerCase()
 
-                if (response.ok && data.success === true) {
-                    setStatus(message.includes('already verified')
-                        ? 'ALREADY_VERIFIED' : 'SUCCESS')
-                } else if (message.includes('expired')) {
+                if ((response.ok && data.success === true) || message.includes('success')) {
+                    setStatus(message.includes('already verified') ? 'ALREADY_VERIFIED' : 'SUCCESS')
+                } else if (response.status === 409 || message.includes('already verified')) {
+                    setStatus('ALREADY_VERIFIED')
+                } else if (response.status === 410 || message.includes('expired')) {
                     setStatus('EXPIRED')
-                } else if (message.includes('invalid') || [400, 404].includes(response.status)) {
+                } else if ([400, 404].includes(response.status) || message.includes('invalid')) {
                     setStatus('INVALID')
                 } else {
                     setStatus('ERROR')

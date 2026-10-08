@@ -20,7 +20,7 @@ const UserRegisterForm = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [cnfPassword, setCnfPassword] = useState('')
-    const [gender, setGender] = useState('Male')
+    const [gender, setGender] = useState('MALE')
     const [dob, setDob] = useState('')
     const [referralCode, setReferralCode] = useState('')
     const [passwordShown, setPasswordShown] = useState(false)
@@ -281,9 +281,10 @@ const UserRegisterForm = () => {
                                     required
                                     style={{ color: 'white', padding: '0px 20px', width: '100%' }}
                                 >
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                    <option value="OTHER">Other</option>
+                                    <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
                                 </select>
                                 <br />
                             </div>
