@@ -6,8 +6,8 @@ export default function userRegister() {
     return (
         <>
             <Head>
-                <title>User Register - Anwesha 2026</title>
-                <meta name="description" content="Anwesha 2026" />
+                <title>User Register - Anwesha 2027</title>
+                <meta name="description" content="Anwesha 2027" />
                 <link rel="icon" href="./logo_no_bg.svg" />
             </Head>
 

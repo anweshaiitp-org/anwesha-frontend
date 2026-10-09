@@ -33,7 +33,7 @@ export default function GalleryPage() {
   return (
     <>
       <Head>
-        <title>Anwesha 2026 Glimpse</title>
+        <title>Anwesha 2027 Glimpse</title>
       </Head>
 
       <div className={styles.container}>

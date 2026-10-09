@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react'
 import styles from './profile.module.css'
 import { AuthContext } from '../authContext'
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -9,6 +11,52 @@ function MyEvents() {
     const [passes, setPasses] = useState([])
     const userData = useContext(AuthContext)
     const authHeaders = userData?.getAuthHeaders ? userData.getAuthHeaders() : {}
+
+    const initiatePayment = async (domain, eventId, teamId = null) => {
+        try {
+            toast.info('Initiating secure payment gateway...', { autoClose: 2000 })
+            const payload = {
+                domain: domain,
+                reference_id: eventId
+            }
+            if (teamId) payload.team_id = teamId;
+
+            const payRes = await fetch(`${host}/payment/initiate`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            const payData = await payRes.json()
+            
+            if (payData.success && payData.atomTokenId) {
+                // Dynamically load the AtomPay script
+                const script = document.createElement('script');
+                script.src = "https://psa.atomtech.in/staticdata/ots/js/atomcheckout.js";
+                script.onload = () => {
+                    const options = {
+                        atomTokenId: String(payData.atomTokenId),
+                        merchId: String(payData.merchId || '564719'),
+                        custEmail: payData.custEmail || '',
+                        custMobile: payData.custMobile || '',
+                        returnUrl: payData.returnUrl || window.location.origin + '/api/payment/verify'
+                    }
+                    if (window.AtomPaynetz) {
+                        new window.AtomPaynetz(options, 'prod');
+                    }
+                };
+                script.onerror = () => toast.error('Failed to load payment gateway.', { autoClose: 3000 });
+                document.body.appendChild(script);
+            } else {
+                toast.error(payData.message || 'Failed to initiate payment.', { autoClose: 3000 })
+            }
+        } catch (error) {
+            console.error("Payment Error", error)
+            toast.error('Payment Error. Please try again.', { autoClose: 3000 })
+        }
+    }
     // Fallback to old endpoint for backward compatibility
     async function fetchEventMyEventsOldEndpoint() {
         try {
@@ -30,13 +78,13 @@ function MyEvents() {
     useEffect(() => {
         const fetchUserRegistrations = async () => {
             try {
-                if (!userData.state?.user?.anwesha_id) {
-                    console.warn('[MyEvents] No anwesha_id available')
+                if (!userData.isAuth) {
+                    console.warn('[MyEvents] Not authenticated')
                     return
                 }
 
                 // Use new unified registrations endpoint
-                const response = await fetch(`${host}/user/registrations/`, {
+                const response = await fetch(`${host}/registration/my`, {
                     method: 'GET',
                     headers: {
                         ...authHeaders,
@@ -52,30 +100,30 @@ function MyEvents() {
                 console.log('[MyEvents] Registrations data:', data)
 
                 // Map response to events and passes state
-                const soloEvents = (data.solo_registrations || []).map((reg) => ({
+                const soloEvents = (data.solo_registrations || data.solo || []).map((reg) => ({
                     event_id: reg.event_id,
                     event_name: reg.event_name,
-                    event_venue: reg.event_category,
-                    registration_fee: reg.registration_fee,
-                    payment_done: reg.payment_done,
-                    event_start_time: reg.event_start_time,
+                    event_venue: reg.event_category || 'TBA',
+                    registration_fee: reg.registration_fee || reg.amount || 0,
+                    payment_done: reg.payment_done !== undefined ? reg.payment_done : (reg.amount > 0),
+                    event_start_time: reg.event_start_time || reg.registration_date,
                     event_end_time: reg.event_end_time,
                     payment_url: reg.payment_url,
                 }))
 
-                const teamEvents = (data.team_registrations || []).map((reg) => ({
+                const teamEvents = (data.team_registrations || data.team || []).map((reg) => ({
                     team_id: reg.team_id,
                     team_name: reg.team_name,
                     event_id: reg.event_id,
                     event_name: reg.event_name,
-                    event_venue: reg.event_category,
-                    registration_fee: reg.registration_fee,
-                    payment_done: reg.payment_done,
-                    event_start_time: reg.event_start_time,
+                    event_venue: reg.event_category || 'TBA',
+                    registration_fee: reg.registration_fee || reg.amount || 0,
+                    payment_done: reg.payment_done !== undefined ? reg.payment_done : (reg.amount > 0),
+                    event_start_time: reg.event_start_time || reg.registration_date,
                     event_end_time: reg.event_end_time,
                     payment_url: reg.payment_url,
-                    is_leader: reg.is_leader,
-                    team_members: reg.team_members || [],
+                    is_leader: reg.is_leader !== undefined ? reg.is_leader : true,
+                    team_members: reg.team_members || reg.members || [],
                 }))
 
                 setEvents({
@@ -458,41 +506,69 @@ function MyEvents() {
                                     >
                                         {e.event_name}
                                     </div>
+                                    {!e.payment_done && (
+                                        <div style={{ marginTop: '10px' }}>
+                                            <a 
+                                                className={styles.payment_btn} 
+                                                href={`/payment-status?order=${e.event_id}&success=false&status=PENDING`} 
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    initiatePayment("SOLO_EVENT", e.event_id);
+                                                }}
+                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none', display: 'inline-block' }}
+                                            >
+                                                Pay Now
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )
                     })}
                     {events.team.map((e, key) => {
                         return (
-                            e.payment_done && (
-                                <div key={key} className={styles.pass}>
-                                    <img src={'/pics/pass.png'}></img>
-                                    <div className={styles.passDetail}>
-                                        <div
-                                            style={{
-                                                fontFamily: 'Laila-Bold',
-                                            }}
-                                        >
-                                            {e.event_name}
-                                        </div>
-                                        <div>
-                                            Team : {e.team_name}
-                                        </div>
-                                        {e.team_members && e.team_members.length > 0 && (
-                                            <div style={{ fontSize: '0.9rem', marginTop: '8px', color: '#ccc' }}>
-                                                <strong>Team Members (Anwesha IDs):</strong>
-                                                <div style={{ marginTop: '4px', paddingLeft: '10px' }}>
-                                                    {e.team_members.map((member, idx) => (
-                                                        <div key={idx}>
-                                                            {member.anwesha_id || member}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                            <div key={key} className={styles.pass}>
+                                <img src={'/pics/pass.png'}></img>
+                                <div className={styles.passDetail}>
+                                    <div
+                                        style={{
+                                            fontFamily: 'Laila-Bold',
+                                        }}
+                                    >
+                                        {e.event_name}
                                     </div>
+                                    <div>
+                                        Team : {e.team_name}
+                                    </div>
+                                    {e.team_members && e.team_members.length > 0 && (
+                                        <div style={{ fontSize: '0.9rem', marginTop: '8px', color: '#ccc' }}>
+                                            <strong>Team Members (Anwesha IDs):</strong>
+                                            <div style={{ marginTop: '4px', paddingLeft: '10px' }}>
+                                                {e.team_members.map((member, idx) => (
+                                                    <div key={idx}>
+                                                        {member.anwesha_id || member}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {!e.payment_done && (
+                                        <div style={{ marginTop: '10px' }}>
+                                            <a 
+                                                className={styles.payment_btn} 
+                                                href={`/payment-status?order=${e.team_id}&success=false&status=PENDING`}
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
+                                                }}
+                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none', display: 'inline-block' }}
+                                            >
+                                                Pay Now
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
-                            )
+                            </div>
                         )
                     })}
                 </div>

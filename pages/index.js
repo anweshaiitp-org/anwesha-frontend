@@ -869,8 +869,8 @@ const IndexPage = () => {
             {countdownTimer && <CountdownTimer />}
 
             <Head>
-                <title>Anwesha 2026</title>
-                <meta name="description" content="Anwesha 2026" />
+                <title>Anwesha 2027</title>
+                <meta name="description" content="Anwesha 2027" />
                 <link rel="icon" href="./logo_no_bg.svg" />
             </Head>
 
@@ -1006,7 +1006,7 @@ const IndexPage = () => {
                         <div className={styles.merch_body}>
                             <div>
                                 <h2 className={dmSerif.className}>
-                                    Anwesha 2026 Official Merchandise
+                                    Anwesha 2027 Official Merchandise
                                 </h2>
                                 <h3>Own the Unforgettable Experience</h3>
                             </div>
@@ -1125,11 +1125,11 @@ const IndexPage = () => {
                         </div>
                     </section>
 
-                    {/* CTA or This Year's Theme */}
+                    {/* CTA or This was Our Theme */}
                     <section className={styles.cta}>
                             <div className={styles.sexy_title}>
                                 <h2 className={dmSerif.className}>
-                                    This Year&apos;s Theme
+                                    This was Our Theme
                                 </h2>
                                 <h3>Palingenesis reverie</h3>
                         </div>

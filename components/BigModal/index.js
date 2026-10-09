@@ -23,8 +23,8 @@ const Modal = (props) => {
         if (userData.isAuth) {
             setIsRegistering(true)
             try {
-                if (props.body.is_active) {
-                    if (props.body.is_solo) {
+                if (props.body.is_active !== false) {
+                    if (props.body.max_team_size === 1) {
                         // Use the new unified registration endpoint
                         const result = await soloEventRegistrationNew(
                             props.body.id,
@@ -45,7 +45,7 @@ const Modal = (props) => {
                                 max_team_size: props.body.max_team_size,
                                 min_team_size: props.body.min_team_size,
                                 registration_fee: props.body.registration_fee,
-                                user_type: userData.state.user.user_type,
+                                user_type: userData.state?.user?.user_type || '',
                                 tags: props.body.tags,
                             },
                         })
@@ -317,6 +317,7 @@ const Modal = (props) => {
                                 ) : null}
                                 {props.body.registration_fee ? (
                                     !userData.isAuth ||
+                                        !userData.state?.user ||
                                         userData.state.user.user_type !==
                                         'iitp_student' ||
                                         props.body.id == 'EVT68cb3' ||

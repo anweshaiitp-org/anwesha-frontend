@@ -596,7 +596,7 @@ export default function Ourteam() {
     return (
         <div className={styles.parentContainer}>
             <Head>
-                <title>Team - Anwesha 2026</title>
+                <title>Team - Anwesha 2027</title>
                 <meta name="description" content="Team-Anwesha 2024" />
                 {/* <link rel="icon" href="./logo_no_bg.svg" /> */}
             </Head>

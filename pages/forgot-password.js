@@ -6,8 +6,8 @@ export default function ForgotPasswordPage() {
     return (
         <>
             <Head>
-                <title>Forgot Password - Anwesha 2026</title>
-                <meta name="description" content="Forgot Password - Anwesha 2026" />
+                <title>Forgot Password - Anwesha 2027</title>
+                <meta name="description" content="Forgot Password - Anwesha 2027" />
                 <link rel="icon" href="./logo_no_bg.svg" />
             </Head>
             <div className={styles.container} loading="lazy">

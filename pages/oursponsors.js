@@ -627,7 +627,7 @@ const Oursponsors = () => {
                     {
                         name: 'LIC',
                         image: 'https://drive.google.com/uc?export=view&id=1tpyLgLBAxsmKnhxiXooqcf8GAKAMMIgM',
-                        link: 'https://licindia.in/hi/buy-online?utm_source=Google&utm_medium=Banner&utm_campaign=PD_LIC_Google_Search_Generic_Jan_Feb_2026&gad_source=1&gad_campaignid=23444935627&gbraid=0AAAAAqqtO5qooHSrKyOOkiODnHA96pXt4&gclid=CjwKCAiA1obMBhAbEiwAsUBbIlkQAYskDW609n6nbzEB_AbR5FadMIozie7C3rC1g-yMln4uTYjEEBoCRnkQAvD_BwE',
+                        link: 'https://licindia.in/hi/buy-online?utm_source=Google&utm_medium=Banner&utm_campaign=PD_LIC_Google_Search_Generic_Jan_Feb_2027&gad_source=1&gad_campaignid=23444935627&gbraid=0AAAAAqqtO5qooHSrKyOOkiODnHA96pXt4&gclid=CjwKCAiA1obMBhAbEiwAsUBbIlkQAYskDW609n6nbzEB_AbR5FadMIozie7C3rC1g-yMln4uTYjEEBoCRnkQAvD_BwE',
                     },
                 ],
             },
@@ -696,7 +696,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'Jio Saavn',
-                        image: '/sponsors/2026/jiosaavn.jpeg',
+                        image: '/sponsors/2027/jiosaavn.jpeg',
                         link: 'https://www.jiosaavn.com',
                     },
                 ],
@@ -776,7 +776,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'NTPC',
-                        image: '/sponsors/2026/National_Thermal_Power_logo.svg',
+                        image: '/sponsors/2027/National_Thermal_Power_logo.svg',
                         link: 'https://ntpc.co.in',
                     },
                 ],
@@ -836,7 +836,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'BCD',
-                        image: '/sponsors/2026/bcd.jpeg',
+                        image: '/sponsors/2027/bcd.jpeg',
                         link: 'https://state.bihar.gov.in/bcd/CitizenHome.html',
                     },
                 ],
@@ -846,7 +846,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'COMFED',
-                        image: '/sponsors/2026/comfed.jpeg',
+                        image: '/sponsors/2027/comfed.jpeg',
                         link: 'https://erp.comfed.co.in',
                     },
                 ],
@@ -856,7 +856,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'Carnival',
-                        image: '/sponsors/2026/carnival.jpeg',
+                        image: '/sponsors/2027/carnival.jpeg',
                         link: 'www.carnival.com',
                     },
                 ],
@@ -876,7 +876,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'Connplex',
-                        image: '/sponsors/2026/connplex.jpeg',
+                        image: '/sponsors/2027/connplex.jpeg',
                         link: 'https://ticketing.theconnplex.com',
                     },
                 ],
@@ -896,7 +896,7 @@ const Oursponsors = () => {
                 sponsors: [
                     {
                         name: 'India Pre AI Summit',
-                        image: '/sponsors/2026/aisummit.jpeg',
+                        image: '/sponsors/2027/aisummit.jpeg',
                         link: 'https://impact.indiaai.gov.in',
                     },
                 ],
@@ -1098,7 +1098,7 @@ const Oursponsors = () => {
                             >
                                 <div className={styles.logoBox}>
                                     <Image
-                                        src="/sponsors/2026/myntra.png"
+                                        src="/sponsors/2027/myntra.png"
                                         alt="Myntra Logo"
                                         width={580}
                                         height={220}
@@ -1143,7 +1143,7 @@ const Oursponsors = () => {
                                             : ''
                                     }
                                 >
-                                    2025-2026
+                                    2025-2027
                                 </a>
                                 <a
                                     onClick={() => setYear('spons26')}
@@ -1153,7 +1153,7 @@ const Oursponsors = () => {
                                             : ''
                                     }
                                 >
-                                    2026-2027
+                                    2027-2027
                                 </a>
                             </div>
                         )}
