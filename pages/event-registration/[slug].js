@@ -159,8 +159,8 @@ const EventRegistration = () => {
                                                     }}
                                                     // key={index + 1}
                                                     required
-                                                    minLength={7}
-                                                    maxLength={7}
+                                                    minLength={4}
+                                                    maxLength={4}
                                                 />
                                                 {index >= min_team_size ? (
                                                     <img

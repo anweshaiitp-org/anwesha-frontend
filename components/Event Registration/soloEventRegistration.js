@@ -169,28 +169,84 @@ async function soloEventRegistrationNew(eventID, router, closeHandler) {
         const data = await response.json()
         console.log('[SoloRegistration] Response:', response.status, data)
 
-        if (response.status === 201 || response.status === 200) {
-            const regData = data.data || data
-            const regId = regData.registration_id || ''
-            const paymentStatus = regData.payment_status || ''
-            const amountDue = regData.amount_due
-
-            let successMsg = data.message || 'Registered successfully'
-            if (regId) successMsg += `\nRegistration ID: ${regId}`
-            if (paymentStatus) successMsg += `\nPayment Status: ${paymentStatus}`
-            if (amountDue !== undefined && amountDue !== null) successMsg += `\nAmount Due: ₹${amountDue}`
-
-            toast.success(successMsg, {
+        if (response.status === 409) {
+            toast.error('You are already registered for this event.', {
                 position: 'top-right',
-                autoClose: 5000,
+                autoClose: 3000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
                 theme: 'light',
-                style: { whiteSpace: 'pre-line' },
             })
+            return null
+        }
+
+        if (response.status === 201 || response.status === 200) {
+            const regData = data.data || data
+            const regId = regData?.registration_id || ''
+            const paymentStatus = regData?.payment_status || 'PENDING'
+            const amountDue = regData?.amount_due !== undefined ? Number(regData.amount_due) : 1
+
+            const isPending = paymentStatus === 'PENDING' || paymentStatus === 'pending';
+            if (!isPending || amountDue === 0) {
+                let successMsg = data.message || 'Registered successfully'
+                if (regId) successMsg += `\nRegistration ID: ${regId}`
+                if (paymentStatus) successMsg += `\nPayment Status: ${paymentStatus}`
+                if (amountDue > 0) successMsg += `\nAmount Due: ₹${amountDue}`
+
+                toast.success(successMsg, {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: 'light',
+                    style: { whiteSpace: 'pre-line' },
+                })
+            }
+
+            if (isPending && amountDue > 0) {
+                toast.info('Initiating secure payment gateway...', { autoClose: 2000 })
+                try {
+                    const payRes = await fetch(`${host}/payment/initiate`, {
+                        method: 'POST',
+                        headers: myHeaders,
+                        body: JSON.stringify({
+                            domain: "SOLO_EVENT",
+                            reference_id: eventID
+                        })
+                    })
+                    const payData = await payRes.json()
+                    
+                    if (payData.success && payData.atomTokenId) {
+                        const scriptLoaded = await loadScript("https://psa.atomtech.in/staticdata/ots/js/atomcheckout.js")
+                        if (scriptLoaded) {
+                            const options = {
+                                atomTokenId: String(payData.atomTokenId),
+                                merchId: String(payData.merchId || '564719'),
+                                custEmail: payData.custEmail || '',
+                                custMobile: payData.custMobile || '',
+                                returnUrl: payData.returnUrl || ''
+                            }
+                            if (window.AtomPaynetz) {
+                                new window.AtomPaynetz(options, 'prod');
+                            }
+                        } else {
+                            toast.error('Failed to load payment gateway.', { autoClose: 3000 })
+                        }
+                    } else {
+                        toast.error('Failed to initiate payment. Please try again from profile.', { autoClose: 3000 })
+                    }
+                } catch (e) {
+                    console.error("Payment Error", e)
+                    toast.error('Payment Error', { autoClose: 3000 })
+                }
+                return regData
+            }
 
             await delay(3000)
             if (closeHandler) closeHandler()

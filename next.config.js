@@ -21,7 +21,7 @@ const nextConfig = {
     async rewrites() {
         const backendUrl = (
             process.env.BACKEND_URL ||
-            'https://9vh9oqloa1.execute-api.localhost.localstack.cloud:4566/prod'
+            'http://localhost:4566/restapis/rd2pitqke0/prod/_user_request_'
         ).replace(/\/+$/, '')
 
         return [
