@@ -1,5 +1,4 @@
 import styles from '../styles/events.module.css'
-import { Josefin_Sans, Montserrat, DM_Serif_Display } from 'next/font/google'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -45,10 +44,7 @@ import Modal from '../components/BigModal/index.js'
 //     "Event": "2 days of workshop",
 // }]
 
-const dmSerif = DM_Serif_Display({
-    subsets: ["latin"],
-    weight: "400",
-});
+const dmSerif = { className: 'font-dm-serif' }
 
 const SponsorsSlider = ({ images, animation_duration = -1 }) => {
     const width = 127.381; // IF YOU CHANGE THIS THEN CHANGE IT INSIDE autoScrollSponseAnimation ALSO
@@ -131,7 +127,6 @@ const Events = () => {
         'https://drive.google.com/uc?export=view&id=18O2pdC3iAelrCxZATs-lZ1ySKyPR7nUp',
         'https://drive.google.com/uc?export=view&id=1wMgI-ijHi7fF6IbNzxtfN-JHhUdUBXja',
         'https://drive.google.com/uc?export=view&id=1eY1Kfmj6-48BvKbezYjLBLLxR5UD0-Dj',
-        'https://drive.google.com/uc?export=view&id=1pHeNDNOUVdQmBgv5012bWpeGXjZ6vOJu',
         'https://drive.google.com/uc?export=view&id=1qJfVG_fdIyZxQrURGjUJIefdj_EXJnvX',
         'https://drive.google.com/uc?export=view&id=1YhJLV3VoL9o4lNF8MSf0jqNmOr10EmRs',
         // 'https://drive.google.com/uc?export=view&id=1UaIXFovMDArchg1xgKpO6jN6kx5Je2yD',
@@ -142,6 +137,7 @@ const Events = () => {
     const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const mediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE || host
     const [events, setEvents] = useState([])
+    const [specialEvents, setSpecialEvents] = useState([])
     const [filteredEvents, setFilteredEvents] = useState([]) // Manages the filtered events
     const [loading, setLoading] = useState(true)
 
@@ -175,10 +171,24 @@ const Events = () => {
                 })
                 setEvents(normalized)
                 setFilteredEvents(normalized)
+
+                const specialRes = await fetch(`${host}/events/special`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                const specialData = await specialRes.json()
+                const specialList = Array.isArray(specialData) ? specialData : (specialData.events || specialData.special_events || specialData.specialEvents || specialData.data || [])
+                const normalizedSpecial = specialList.map((ev) => ({
+                    ...ev,
+                    poster: makePosterUrl(ev.poster_file || ev.poster || ev.poster_url),
+                    name: ev.name || ev["Event Name"] || '',
+                }))
+                setSpecialEvents(normalizedSpecial)
             } catch (e) {
                 console.error('Failed to fetch events', e)
                 setEvents([])
                 setFilteredEvents([])
+                setSpecialEvents([])
             } finally {
                 setLoading(false)
             }
@@ -232,18 +242,28 @@ const Events = () => {
                 <div className={styles.titleBox}>
                     <div className={styles.titleText}>EXPLORE THE EVENTS</div>
                 </div>
-                <div className={`${styles.searchContainer}`}>
-                    <div className={`${styles.searchbox}`}>
-                        <input
-                            className={styles.searchbar}
-                            type="text"
-                            placeholder="Search Events"
-                            value={searchQuery}
-                            onChange={handleSearch}
-                        />
-                        <img src="/events/search_icon.svg" alt="" />
+                {loading ? (
+                    <div style={{ color: 'white', fontSize: '24px', textAlign: 'center', width: '100%', margin: '40px 0' }}>
+                        Loading events...
                     </div>
-                </div>
+                ) : events.length === 0 ? (
+                    <div style={{ color: 'white', fontSize: '24px', textAlign: 'center', width: '100%', margin: '40px 0' }}>
+                        Currently there are no events or we are not accepting registration
+                    </div>
+                ) : (
+                    <>
+                        <div className={`${styles.searchContainer}`}>
+                            <div className={`${styles.searchbox}`}>
+                                <input
+                                    className={styles.searchbar}
+                                    type="text"
+                                    placeholder="Search Events"
+                                    value={searchQuery}
+                                    onChange={handleSearch}
+                                />
+                                <img src="/events/search_icon.svg" alt="" />
+                            </div>
+                        </div>
 
                 {/* Featured Events Section - Below Search Bar on First Page */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
@@ -258,7 +278,7 @@ const Events = () => {
                             searchResults.slice(0, 3).map((item, idx) => (
                                 <div key={idx} className={styles.featuredCard} style={{ filter: 'grayscale(100%)' }}>
                                     <Card
-                                        onClick={() => openModal(item)}
+                                        onClick={() => window.open(`/events/${item.id || item._id}`, '_blank')}
                                         event={item}
                                         closeHandler={closeModal}
                                     />
@@ -267,10 +287,10 @@ const Events = () => {
                         ) : (
                             // Default 3 featured cards (shown when not searching OR when no results)
                             <>
-                                {events.slice(0, 3).map((item, idx) => (
+                                {specialEvents.slice(0, 3).map((item, idx) => (
                                     <div key={idx} className={styles.featuredCard} style={{ filter: 'grayscale(100%)' }}>
                                         <Card
-                                            onClick={() => openModal(item)}
+                                            onClick={() => window.open(`/events/${item.id || item._id}`, '_blank')}
                                             event={item}
                                             closeHandler={closeModal}
                                         />
@@ -295,7 +315,7 @@ const Events = () => {
                     <div className={styles.cardContainer}>
                         {events.map((item, idx) => (
                             <Card
-                                onClick={() => openModal(item)}
+                                onClick={() => window.open(`/events/${item.id || item._id}`, '_blank')}
                                 key={idx}
                                 event={item}
                                 closeHandler={closeModal}
@@ -303,6 +323,8 @@ const Events = () => {
                         ))}
                     </div>
                 </div>
+                </>
+                )}
                 {isModalOpen && (
                     <Modal
                         title={(selectedEvent?.name || '').split('#')[0]}

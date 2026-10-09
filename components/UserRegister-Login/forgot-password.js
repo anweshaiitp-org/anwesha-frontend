@@ -14,91 +14,67 @@ const cn = (...classes) => {
 }
 
 const ForgotPassword = () => {
-    const context = useContext(AuthContext)
     const [email, setEmail] = React.useState('')
+    const [loading, setLoading] = React.useState(false)
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-        let body = { email_id: email }
-        // user input validation
-        if (email.length == 0) {
-            toast.warning('Please fill email', {
+
+        const trimmedEmail = email.trim().toLowerCase()
+        if (!trimmedEmail) {
+            toast.warning('Please enter your email address', {
                 position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
                 theme: 'light',
             })
             return
         }
+
+        const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        if (!emailRegex.test(trimmedEmail)) {
+            toast.warning('Please provide a valid email address', {
+                position: 'top-right',
+                theme: 'light',
+            })
+            return
+        }
+
+        setLoading(true)
+
         try {
             const response = await fetch(`${host}/auth/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(body),
+                body: JSON.stringify({ email_id: trimmedEmail }),
             })
 
-            //check if request is successful
-            // console.log(response.status)
-            if (response.status === 200 || response.status === 201) {
+            const data = await response.json()
+            setLoading(false)
+
+            if (response.status === 200 || response.status === 201 || data.success) {
                 toast.success(
-                    'Please check your email for the password reset link. Make sure to check the spam folder as well.',
+                    data.message || 'Please check your email for the password reset link. Make sure to check your spam folder.',
                     {
                         position: 'top-right',
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
+                        autoClose: 5000,
                         theme: 'light',
                     }
                 )
-            } else if (response.status === 409) {
-                const data = await response.json()
-                toast.error(data.message || 'Unable to reset password', {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                })
             } else {
-                const data = await response.json()
-                toast.error(data.message, {
+                toast.error(data.message || 'Unable to request password reset. Please try again.', {
                     position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
+                    autoClose: 4000,
                     theme: 'light',
                 })
             }
         } catch (err) {
-            console.log(err)
-            toast.error(
-                'Password reset failed. Check your internet connection',
-                {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: 'light',
-                }
-            )
+            console.error('[ForgotPassword] Error:', err)
+            setLoading(false)
+            toast.error('Password reset failed. Check your internet connection.', {
+                position: 'top-right',
+                theme: 'light',
+            })
         }
     }
 
@@ -197,12 +173,11 @@ const ForgotPassword = () => {
 
                         <div className={styles.hero_button}>
                             <button
-                                className={cn(
-                                    styles.register_button,
-                                )}
+                                className={cn(styles.register_button)}
                                 onClick={handleSubmit}
+                                disabled={loading}
                             >
-                                SUBMIT
+                                {loading ? 'SENDING...' : 'SUBMIT'}
                             </button>
                         </div>
                     </div>

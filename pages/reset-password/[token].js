@@ -17,21 +17,27 @@ const ResetPassword = () => {
     const { token } = router.query
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const handleSubmit = async (event) => {
         event.preventDefault()
 
+        const resetToken = token || (typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '')
+
+        if (!resetToken) {
+            toast.error('Reset token is missing from the URL.', {
+                position: 'top-right',
+                theme: 'light',
+            })
+            return
+        }
+
         // Validation
         if (!password || !confirmPassword) {
-            toast.warning('Please fill all fields', {
+            toast.warning('Please fill in all password fields', {
                 position: 'top-right',
                 autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
                 theme: 'light',
             })
             return
@@ -41,25 +47,15 @@ const ResetPassword = () => {
             toast.error('Passwords do not match', {
                 position: 'top-right',
                 autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
                 theme: 'light',
             })
             return
         }
 
         if (password.length < 6) {
-            toast.error('Password must be at least 6 characters', {
+            toast.error('Password must be at least 6 characters long', {
                 position: 'top-right',
                 autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
                 theme: 'light',
             })
             return
@@ -68,59 +64,44 @@ const ResetPassword = () => {
         setLoading(true)
 
         try {
-            const response = await fetch(`${host}/user/forgetpassword`, {
-                method: 'PUT',
+            const response = await fetch(`${host}/auth/reset-password`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    token: token,
+                    token: resetToken,
                     password: password,
+                    new_password: password,
                 }),
             })
 
             const data = await response.json()
+            setLoading(false)
 
-            if (response.status === 200) {
-                toast.success('Password reset successfully! Redirecting to login...', {
+            if (response.status === 200 || data.success) {
+                toast.success(data.message || 'Password reset successfully! Redirecting to login...', {
                     position: 'top-right',
                     autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
                     theme: 'light',
                 })
                 setTimeout(() => {
                     router.push('/userLogin')
                 }, 2000)
             } else {
-                toast.error(data.message || 'Unable to reset password', {
+                toast.error(data.message || 'Unable to reset password. The link may have expired.', {
                     position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
+                    autoClose: 4000,
                     theme: 'light',
                 })
             }
         } catch (err) {
-            console.error(err)
-            toast.error('Password reset failed. Check your internet connection', {
+            console.error('[ResetPassword] Error:', err)
+            setLoading(false)
+            toast.error('Password reset failed. Check your internet connection.', {
                 position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
                 theme: 'light',
             })
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -167,7 +148,7 @@ const ResetPassword = () => {
                             <label htmlFor="password">New Password</label>
                             <br />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 name="password"
                                 placeholder="Enter new password"
                                 value={password}
@@ -182,15 +163,42 @@ const ResetPassword = () => {
                             <label htmlFor="confirmPassword">Confirm Password</label>
                             <br />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 name="confirmPassword"
-                                placeholder="Confirm password"
+                                placeholder="Confirm new password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                                 disabled={loading}
                             />
                             <br />
+                        </div>
+
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginTop: '10px',
+                                gap: '8px',
+                                color: '#ffffff',
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={showPassword}
+                                onChange={(e) => setShowPassword(e.target.checked)}
+                                style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                }}
+                            />
+                            <label style={{ cursor: 'pointer' }}>Show Password</label>
                         </div>
 
                         <div
