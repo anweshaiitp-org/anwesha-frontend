@@ -157,7 +157,7 @@ function Navigation() {
                         src="/navbar/logo.svg"
                         alt="logo"
                         width={130}
-                        height={60}
+                        height={46}
                     />
                 </Link>
                 <div className={styles.navLinks}>

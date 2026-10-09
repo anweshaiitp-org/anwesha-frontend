@@ -136,7 +136,7 @@ const BatRight = ({ width = 85, height = 85 }) => {
     return (
         <Image
             src="/home/left_button.png"
-            alt="Bat Left"
+            alt="Bat Right"
             width={width}
             height={height}
             priority
@@ -327,69 +327,38 @@ const EventSlider = ({
 
     useEffect(() => {
         if (images.length === 0) return
-        if (!imageRefs.current.every((ref) => ref.current)) return
+        if (imageRefs.current.length !== images.length) return
+        if (!imageRefs.current.every((ref) => ref && ref.current)) return
         if (currIndex === oldIndex) return
+
+        const setStyle = (idx, props) => {
+            const ref = imageRefs.current[idx]
+            if (!ref || !ref.current) return
+            Object.assign(ref.current.style, props)
+        }
 
         if (
             currIndex === oldIndex + 1 ||
             (currIndex === 0 && oldIndex === images.length - 1)
         ) {
             // Toward left
-            imageRefs.current[prevprevprev].current.style.zIndex = '-1'
-            imageRefs.current[prevprev].current.style.zIndex = '1'
-            imageRefs.current[
-                prevprev
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% - ${
-                2 * offset
-            }px))`
-            imageRefs.current[prev].current.style.zIndex = '2'
-            imageRefs.current[
-                prev
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% - min(50vw - 200px, ${offset}px)))`
-            imageRefs.current[currIndex].current.style.zIndex = '3'
-            imageRefs.current[
-                currIndex
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50%))`
-            imageRefs.current[next].current.style.zIndex = '2'
-            imageRefs.current[
-                next
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% + min(50vw - 200px, ${offset}px)))`
-            imageRefs.current[nextnext].current.style.zIndex = '-1'
-            imageRefs.current[
-                nextnext
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% + ${
-                2 * offset
-            }px))`
+            setStyle(prevprevprev, { zIndex: '-1' })
+            setStyle(prevprev, { zIndex: '1', transform: `translateY(-50%) translateX(calc(-50% - ${2 * offset}px))` })
+            setStyle(prev, { zIndex: '2', transform: `translateY(-50%) translateX(calc(-50% - min(50vw - 200px, ${offset}px)))` })
+            setStyle(currIndex, { zIndex: '3', transform: `translateY(-50%) translateX(calc(-50%))` })
+            setStyle(next, { zIndex: '2', transform: `translateY(-50%) translateX(calc(-50% + min(50vw - 200px, ${offset}px)))` })
+            setStyle(nextnext, { zIndex: '-1', transform: `translateY(-50%) translateX(calc(-50% + ${2 * offset}px))` })
         } else if (
             currIndex === oldIndex - 1 ||
             (currIndex === images.length - 1 && oldIndex === 0)
         ) {
             // Toward Right
-            imageRefs.current[prevprev].current.style.zIndex = '-1'
-            imageRefs.current[
-                prevprev
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% - ${
-                2 * offset
-            }px))`
-            imageRefs.current[prev].current.style.zIndex = '2'
-            imageRefs.current[
-                prev
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% - min(50vw - 200px, ${offset}px)))`
-            imageRefs.current[currIndex].current.style.zIndex = '3'
-            imageRefs.current[
-                currIndex
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50%))`
-            imageRefs.current[next].current.style.zIndex = '2'
-            imageRefs.current[
-                next
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% + min(50vw - 200px, ${offset}px)))`
-            imageRefs.current[nextnext].current.style.zIndex = '1'
-            imageRefs.current[
-                nextnext
-            ].current.style.transform = `translateY(-50%) translateX(calc(-50% + ${
-                2 * offset
-            }px))`
-            imageRefs.current[nextnextnext].current.style.zIndex = '-1'
+            setStyle(prevprev, { zIndex: '-1', transform: `translateY(-50%) translateX(calc(-50% - ${2 * offset}px))` })
+            setStyle(prev, { zIndex: '2', transform: `translateY(-50%) translateX(calc(-50% - min(50vw - 200px, ${offset}px)))` })
+            setStyle(currIndex, { zIndex: '3', transform: `translateY(-50%) translateX(calc(-50%))` })
+            setStyle(next, { zIndex: '2', transform: `translateY(-50%) translateX(calc(-50% + min(50vw - 200px, ${offset}px)))` })
+            setStyle(nextnext, { zIndex: '1', transform: `translateY(-50%) translateX(calc(-50% + ${2 * offset}px))` })
+            setStyle(nextnextnext, { zIndex: '-1' })
         }
         setOldIndex(currIndex)
     }, [currIndex, images])
@@ -793,7 +762,6 @@ const IndexPage = () => {
         'https://drive.google.com/uc?export=view&id=18O2pdC3iAelrCxZATs-lZ1ySKyPR7nUp',
         'https://drive.google.com/uc?export=view&id=1wMgI-ijHi7fF6IbNzxtfN-JHhUdUBXja',
         'https://drive.google.com/uc?export=view&id=1eY1Kfmj6-48BvKbezYjLBLLxR5UD0-Dj',
-        'https://drive.google.com/uc?export=view&id=1pHeNDNOUVdQmBgv5012bWpeGXjZ6vOJu',
         'https://drive.google.com/uc?export=view&id=1qJfVG_fdIyZxQrURGjUJIefdj_EXJnvX',
         'https://drive.google.com/uc?export=view&id=1YhJLV3VoL9o4lNF8MSf0jqNmOr10EmRs',
         // 'https://drive.google.com/uc?export=view&id=1UaIXFovMDArchg1xgKpO6jN6kx5Je2yD',
@@ -922,11 +890,11 @@ const IndexPage = () => {
                     {/* HERO CONTENT */}
                     <div className={styles.hero_text}>
                         <Image
-                            src={'/home/title_text_home.png'}
+                            src={'/newanweshalogo.svg'}
                             width={1000}
-                            height={313}
+                            height={356}
                             className={styles.hero_title_img}
-                            alt="add hero title"
+                            alt="Anwesha Logo"
                             priority
                         />
                     </div>
@@ -1159,11 +1127,11 @@ const IndexPage = () => {
 
                     {/* CTA or This Year's Theme */}
                     <section className={styles.cta}>
-                        <div className={styles.sexy_title}>
-                            <h2 className={dmSerif.className}>
-                                This Year&apos;s Theme
-                            </h2>
-                            <h3>Palingenesis reverie</h3>
+                            <div className={styles.sexy_title}>
+                                <h2 className={dmSerif.className}>
+                                    This Year&apos;s Theme
+                                </h2>
+                                <h3>Palingenesis reverie</h3>
                         </div>
                         <div className={styles.cta_body}>
                             <div className={styles.cta_body_left}>

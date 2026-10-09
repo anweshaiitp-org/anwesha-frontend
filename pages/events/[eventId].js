@@ -4,7 +4,8 @@ import Head from 'next/head'
 import { AuthContext } from '../../components/authContext'
 import { soloEventRegistrationNew } from '../../components/Event Registration/soloEventRegistration'
 import { ToastContainer, toast } from 'react-toastify'
-import styles from '../../components/BigModal/Modal.module.css'
+import modalStyles from '../../components/BigModal/Modal.module.css'
+import styles from '../../styles/event-details.module.css'
 
 const EventDetailsPage = () => {
     const router = useRouter()
@@ -130,15 +131,18 @@ const EventDetailsPage = () => {
             <Head>
                 <title>{title} - Anwesha 2026</title>
             </Head>
-            <div style={{ minHeight: '100vh', backgroundColor: '#0a0a0a', padding: '100px 20px 50px', color: 'white' }}>
-                <div style={{ maxWidth: '1000px', margin: '0 auto', backgroundColor: '#1a1a1a', borderRadius: '15px', padding: '40px' }}>
+            <div className={styles.eventPage}>
+                <div className={styles.eventShell}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h1 style={{ fontSize: '36px', margin: 0 }}>{title}</h1>
+                        <div>
+                            <p className={styles.eyebrow}>ANWESHA 2026 · EVENT DETAILS</p>
+                            <h1 className={styles.eventTitle}>{title}</h1>
+                        </div>
                     </div>
                     <hr style={{ borderColor: '#333', marginBottom: '40px' }} />
 
                     {registrationResult && (
-                        <div className={styles.registration_success} style={{ backgroundColor: '#2a2a2a', padding: '20px', borderRadius: '10px', marginBottom: '30px' }}>
+                            <div className={modalStyles.registration_success} style={{ backgroundColor: '#2a2a2a', padding: '20px', borderRadius: '10px', marginBottom: '30px' }}>
                             <div style={{ fontSize: '22px', fontWeight: '600', color: '#0a7c42', marginBottom: '12px' }}>
                                 ✓ Registered Successfully
                             </div>
@@ -163,34 +167,34 @@ const EventDetailsPage = () => {
                     )}
 
                     {!registrationResult && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px' }}>
-                            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div className={styles.eventBody}>
+                            <div className={styles.eventMedia}>
                                 <img
                                     src={event.poster || '/events/poster.png'}
                                     alt={title}
-                                    style={{ width: '100%', maxWidth: '300px', borderRadius: '15px', marginBottom: '20px' }}
+                                    className={styles.poster}
                                 />
                                 {event.video && (
                                     <a
+                                        className={styles.rulebook}
                                         target="_blank"
                                         rel="noreferrer"
                                         href={event.video}
-                                        style={{ display: 'block', width: '100%', maxWidth: '300px', textAlign: 'center', padding: '15px', backgroundColor: '#333', color: 'white', textDecoration: 'none', borderRadius: '8px', marginBottom: '15px', fontWeight: 'bold' }}
                                     >
                                         Rulebook
                                     </a>
                                 )}
                                 <button
+                                    className={styles.registerButton}
                                     onClick={handleRagister}
                                     disabled={isRegistering}
-                                    style={{ display: 'block', width: '100%', maxWidth: '300px', padding: '15px', backgroundColor: '#e23d3d', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: isRegistering ? 'not-allowed' : 'pointer', opacity: isRegistering ? 0.7 : 1 }}
                                 >
                                     {isRegistering ? 'Processing...' : 'Register'}
                                 </button>
                             </div>
                             
-                            <div style={{ flex: '2 1 400px' }}>
-                                <div style={{ backgroundColor: '#222', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
+                            <div className={styles.eventInfo}>
+                                <div className={styles.facts}>
                                     {(event.start_time && event.end_time) ? (
                                         <p style={{ margin: '5px 0' }}><strong>Date:</strong> {new Date(event.start_time).toLocaleDateString()} - {new Date(event.end_time).toLocaleDateString()}</p>
                                     ) : event.Date ? (
