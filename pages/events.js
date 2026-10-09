@@ -233,8 +233,8 @@ const Events = () => {
     return (
         <div className={styles.mainContainer}>
             <Head>
-                <title>Events - Anwesha 2026</title>
-                <meta name="description" content="Events-Anwesha 2026" />
+                <title>Events - Anwesha 2027</title>
+                <meta name="description" content="Events-Anwesha 2027" />
                 <link rel="icon" href="./logo_no_bg.svg" />
             </Head>
 

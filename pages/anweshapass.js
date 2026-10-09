@@ -412,7 +412,7 @@ function Anweshapass() {
                 <div className={styles.passcontainer_body}>
 
                     <div>
-                        <h2>Anwesha 2026 FESTIVAL Passes</h2>
+                        <h2>Anwesha 2027 FESTIVAL Passes</h2>
                         <h3>STEP INTO THE REVERIE</h3>
                     </div>
                     <p>

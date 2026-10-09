@@ -102,8 +102,8 @@ export default function VerifyEmailPage() {
     return (
         <>
             <Head>
-                <title>Email Verification - Anwesha 2026</title>
-                <meta name="description" content="Verify your email address for Anwesha 2026" />
+                <title>Email Verification - Anwesha 2027</title>
+                <meta name="description" content="Verify your email address for Anwesha 2027" />
                 <link rel="icon" href="/logo_no_bg.svg" />
             </Head>
 

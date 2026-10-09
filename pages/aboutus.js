@@ -24,7 +24,7 @@ const Aboutus = () => {
                 </p>
                 <br />
                 <p className={styles.para}>
-                    Anwesha 2026 is envisioned to be an innovative and cultural
+                    Anwesha 2027 is envisioned to be an innovative and cultural
                     uplifting festival of togetherness in not just the state or
                     region, but the whole nation. We have reimagined the lens
                     through which we understand culture and celebration,
@@ -45,7 +45,7 @@ const Aboutus = () => {
                     <li className={styles.listitem}>
                         <p className={styles.para}>
                             With the expanding music palette of Indian audiences
-                            after the internet arrived, Anwesha 2026 is at the
+                            after the internet arrived, Anwesha 2027 is at the
                             converging point to introduce independent music and
                             art at college festivals.
                         </p>

@@ -38,7 +38,7 @@ function MyApp({ Component, pageProps }) {
     return (
         <main className={poppins.className} style={{ background: 'black' }}>
             <Head>
-                <title>Anwesha 2026 | IIT Patna</title>
+                <title>Anwesha 2027 | IIT Patna</title>
             </Head>
             <AuthUserProvider>
                 {/* style={{ background: 'linear-gradient(169deg, #81D9FF -5.25%, #D4F2FF 111.03%)' }} */}

@@ -129,13 +129,13 @@ const EventDetailsPage = () => {
     return (
         <React.StrictMode>
             <Head>
-                <title>{title} - Anwesha 2026</title>
+                <title>{title} - Anwesha 2027</title>
             </Head>
             <div className={styles.eventPage}>
                 <div className={styles.eventShell}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                         <div>
-                            <p className={styles.eyebrow}>ANWESHA 2026 · EVENT DETAILS</p>
+                            <p className={styles.eyebrow}>ANWESHA 2027 · EVENT DETAILS</p>
                             <h1 className={styles.eventTitle}>{title}</h1>
                         </div>
                     </div>
