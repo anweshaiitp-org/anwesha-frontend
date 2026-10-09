@@ -29,14 +29,14 @@ const Footer = () => {
           />
         </div>
         <div className={styles.footer_content}>
-          <div className={styles.footer_upper}>
-            <div className={styles.foter_logo}>
-              <Image
-                src="/footer/logo.svg"
-                alt="Image description"
-                width={394.55}
-                height={225.76}
-              />
+            <div className={styles.footer_upper}>
+              <div className={styles.foter_logo}>
+                <Image
+                  src="/navbar/logo.svg"
+                  alt="Anwesha logo"
+                  width={260}
+                  height={93}
+                />
             </div>
             <div className={styles.social_logo}>
               <div className={styles.social_logo_container}>

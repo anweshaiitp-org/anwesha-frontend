@@ -1,5 +1,4 @@
 import styles from '../styles/events.module.css'
-import { Josefin_Sans, Montserrat, DM_Serif_Display } from 'next/font/google'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -45,10 +44,7 @@ import Modal from '../components/BigModal/index.js'
 //     "Event": "2 days of workshop",
 // }]
 
-const dmSerif = DM_Serif_Display({
-    subsets: ["latin"],
-    weight: "400",
-});
+const dmSerif = { className: 'font-dm-serif' }
 
 const SponsorsSlider = ({ images, animation_duration = -1 }) => {
     const width = 127.381; // IF YOU CHANGE THIS THEN CHANGE IT INSIDE autoScrollSponseAnimation ALSO
@@ -131,7 +127,6 @@ const Events = () => {
         'https://drive.google.com/uc?export=view&id=18O2pdC3iAelrCxZATs-lZ1ySKyPR7nUp',
         'https://drive.google.com/uc?export=view&id=1wMgI-ijHi7fF6IbNzxtfN-JHhUdUBXja',
         'https://drive.google.com/uc?export=view&id=1eY1Kfmj6-48BvKbezYjLBLLxR5UD0-Dj',
-        'https://drive.google.com/uc?export=view&id=1pHeNDNOUVdQmBgv5012bWpeGXjZ6vOJu',
         'https://drive.google.com/uc?export=view&id=1qJfVG_fdIyZxQrURGjUJIefdj_EXJnvX',
         'https://drive.google.com/uc?export=view&id=1YhJLV3VoL9o4lNF8MSf0jqNmOr10EmRs',
         // 'https://drive.google.com/uc?export=view&id=1UaIXFovMDArchg1xgKpO6jN6kx5Je2yD',

@@ -675,11 +675,6 @@ const Oursponsors = () => {
                         link: 'https://bsacs.bihar.gov.in/',
                     },
                     {
-                        name: 'IOCL',
-                        image: 'https://drive.google.com/uc?export=view&id=1pHeNDNOUVdQmBgv5012bWpeGXjZ6vOJu',
-                        link: 'https://iocl.com',
-                    },
-                    {
                         name: 'Sichai',
                         image: 'https://drive.google.com/uc?export=view&id=1qJfVG_fdIyZxQrURGjUJIefdj_EXJnvX',
                         link: 'https://wrd.bihar.gov.in',
