@@ -38,17 +38,31 @@ const PrivateRoute = ({ children }) => {
 
     useEffect(() => {
         const protectedPrefixes = [
+            '/profile',
             '/event-registration',
             '/event-registrations',
-            '/profile',
-            '/submit-id',
-            '/ticket',
         ]
         const isProtectedRoute = protectedPrefixes.some((route) =>
             router.pathname.startsWith(route)
         )
 
-        if (!auth.isAuth && isProtectedRoute) {
+        // Never redirect public, ticket, auth, or password reset pages to login
+        const isPublicAuthPage = [
+            '/ticket',
+            '/userLogin',
+            '/userRegister',
+            '/ca-login',
+            '/ca-register',
+            '/forgot-password',
+            '/password-reset',
+            '/reset-password',
+            '/user/reset_password',
+            '/verify-email',
+            '/send-verification',
+            '/submit-id',
+        ].some((route) => router.pathname.startsWith(route))
+
+        if (!auth.isAuth && isProtectedRoute && !isPublicAuthPage) {
             const callback = encodeURIComponent(router.asPath || router.pathname)
             router.push(`/userLogin?callbackUrl=${callback}`)
         }
