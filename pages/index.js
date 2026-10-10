@@ -265,23 +265,17 @@ const makePosterUrl = (url) => {
     }
 
     if (
-        url.startsWith('/events/') ||
+        url === '/events/poster.png' ||
+        url === '/events/poster1.png' ||
+        url === 'events/poster.png' ||
+        url === 'events/poster1.png' ||
         url.startsWith('/images/') ||
         url.startsWith('/pics/') ||
         url.startsWith('/home/') ||
-        url.startsWith('/assets/')
+        url.startsWith('/assets/') ||
+        url.startsWith('/multicity/')
     ) {
-        return url
-    }
-
-    if (
-        url.startsWith('events/') ||
-        url.startsWith('images/') ||
-        url.startsWith('pics/') ||
-        url.startsWith('home/') ||
-        url.startsWith('assets/')
-    ) {
-        return `/${url}`
+        return url.startsWith('/') ? url : `/${url}`
     }
 
     const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
@@ -1015,9 +1009,9 @@ const IndexPage = () => {
     <SpecialEventFeature
         event={specialEvents[0]}
         posterUrl={makePosterUrl(
+            specialEvents[0].poster_url ||
             specialEvents[0].poster_file ||
-            specialEvents[0].poster ||
-            specialEvents[0].poster_url
+            specialEvents[0].poster
         )}
     />
 )}
@@ -1061,6 +1055,7 @@ const IndexPage = () => {
                                                 'https://docs.google.com/forms/d/e/1FAIpQLSduNP0wbd7_7VZQJn8QARluerDm3HjO1lXw7gYwupdx9wt5_Q/viewform?usp=send_form'
                                             )
                                         }
+                                        disabled
 
                                         // onClick={() => router.push('/merch')}
                                     >

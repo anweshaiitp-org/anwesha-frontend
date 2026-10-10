@@ -78,7 +78,7 @@ const Modal = (props) => {
                 setIsRegistering(false)
             }
         } else {
-            router.push('/userLogin')
+            router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
         }
     }
 

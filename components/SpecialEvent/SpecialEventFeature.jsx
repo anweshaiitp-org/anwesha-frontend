@@ -255,32 +255,46 @@ export default function SpecialEventFeature({ event, posterUrl, onOpen }) {
     React.useEffect(() => {
         if (!event) return
         const raw = posterUrl || event.poster_url || event.poster_file || event.poster
+        const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
+
         if (raw) {
             if (raw.startsWith('http://') || raw.startsWith('https://')) {
                 setPosterSrc(raw)
-            } else if (
-                raw.startsWith('/events/') ||
+                return
+            }
+            if (
+                raw === '/events/poster.png' ||
+                raw === '/events/poster1.png' ||
+                raw === 'events/poster.png' ||
+                raw === 'events/poster1.png' ||
                 raw.startsWith('/images/') ||
                 raw.startsWith('/pics/') ||
                 raw.startsWith('/home/') ||
-                raw.startsWith('/assets/')
+                raw.startsWith('/assets/') ||
+                raw.startsWith('/multicity/')
             ) {
-                setPosterSrc(raw)
-            } else if (
-                raw.startsWith('events/') ||
-                raw.startsWith('images/') ||
-                raw.startsWith('pics/') ||
-                raw.startsWith('home/') ||
-                raw.startsWith('assets/')
-            ) {
-                setPosterSrc(`/${raw}`)
-            } else {
-                const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
-                const mediaBase = process.env.NEXT_PUBLIC_MEDIA_BASE || host
-                const base = (mediaBase || '').replace(/\/$/, '')
-                const path = raw.startsWith('/') ? raw : `/${raw}`
-                setPosterSrc(`${base}${path}`)
+                setPosterSrc(raw.startsWith('/') ? raw : `/${raw}`)
+                return
             }
+        }
+
+        // If raw is an S3 file key (e.g. events/EVT-...), fetch the signed URL from the poster endpoint
+        const eventId = event.id || event._id
+        if (eventId) {
+            fetch(`${host}/events/${eventId}/poster`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data?.success && data?.url) {
+                        setPosterSrc(data.url)
+                    } else if (raw) {
+                        setPosterSrc(raw.startsWith('/') ? raw : `/${raw}`)
+                    } else {
+                        setPosterSrc('/events/poster.png')
+                    }
+                })
+                .catch(() => {
+                    setPosterSrc('/events/poster.png')
+                })
         } else {
             setPosterSrc('/events/poster.png')
         }

@@ -904,7 +904,7 @@ export default function AccommodationPage() {
                             <h3>Sign in to continue</h3>
                             <p>You need your Anwesha account to submit an accommodation request.</p>
                         </div>
-                        <button type="button" className="ac-btn-primary ac-inline" onClick={() => router.push('/userLogin')}>
+                        <button type="button" className="ac-btn-primary ac-inline" onClick={() => router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)}>
                             Sign in or register
                         </button>
                     </motion.div>

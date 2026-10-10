@@ -207,7 +207,7 @@ async function teamEventRegistrationNew(
             progress: undefined,
             theme: 'light',
         })
-        router.push('/userLogin')
+        router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
         return null
     }
     myHeaders.append('Authorization', `Bearer ${token}`)
@@ -369,7 +369,7 @@ async function teamEventRegistrationNew(
             // Handle 401 specifically — redirect to login
             if (response.status === 401) {
                 localStorage.removeItem('anwesha_token')
-                router.push('/userLogin')
+                router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
             }
 
             const errorMsg = getErrorMessage(response.status, data)

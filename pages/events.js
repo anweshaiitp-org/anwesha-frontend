@@ -144,12 +144,22 @@ const Events = () => {
     const makePosterUrl = (url) => {
         if (!url) return '/events/poster.png'
         if (url.startsWith('http://') || url.startsWith('https://')) return url
-        console.log('[Events] Raw poster URL from backend:', url)
+        if (
+            url === '/events/poster.png' ||
+            url === '/events/poster1.png' ||
+            url === 'events/poster.png' ||
+            url === 'events/poster1.png' ||
+            url.startsWith('/images/') ||
+            url.startsWith('/pics/') ||
+            url.startsWith('/home/') ||
+            url.startsWith('/assets/') ||
+            url.startsWith('/multicity/')
+        ) {
+            return url.startsWith('/') ? url : `/${url}`
+        }
         const base = (mediaBase || '').replace(/\/$/, '')
         const path = url.startsWith('/') ? url : `/${url}`
-        const fullUrl = `${base}${path}`
-        console.log('[Events] Constructed full URL:', fullUrl)
-        return fullUrl
+        return `${base}${path}`
     }
 
     useEffect(() => {
@@ -163,12 +173,10 @@ const Events = () => {
                 const eventsArray = Array.isArray(data) ? data : (data.events || [])
                 const normalized = eventsArray.map((ev) => ({
                         ...ev,
-                        poster: makePosterUrl(ev.poster_file || ev.poster || ev.poster_url),
+                        poster: makePosterUrl(ev.poster_url || ev.poster || ev.poster_file),
+                        poster_url: makePosterUrl(ev.poster_url || ev.poster || ev.poster_file),
                         name: ev.name || ev["Event Name"] || '',
                     }))
-                normalized.forEach((ev, idx) => {
-                    console.log(`[Events] ${idx} poster:`, ev.poster)
-                })
                 setEvents(normalized)
                 setFilteredEvents(normalized)
 
@@ -180,7 +188,8 @@ const Events = () => {
                 const specialList = Array.isArray(specialData) ? specialData : (specialData.events || specialData.special_events || specialData.specialEvents || specialData.data || [])
                 const normalizedSpecial = specialList.map((ev) => ({
                     ...ev,
-                    poster: makePosterUrl(ev.poster_file || ev.poster || ev.poster_url),
+                    poster: makePosterUrl(ev.poster_url || ev.poster || ev.poster_file),
+                    poster_url: makePosterUrl(ev.poster_url || ev.poster || ev.poster_file),
                     name: ev.name || ev["Event Name"] || '',
                 }))
                 setSpecialEvents(normalizedSpecial)
