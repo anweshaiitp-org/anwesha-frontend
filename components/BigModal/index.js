@@ -117,42 +117,83 @@ const Modal = (props) => {
                         }}
                     />
 
-                    {/* Registration success result overlay */}
+                    {/* Registration success / pending payment result overlay */}
                     {registrationResult && (
                         <div className={styles.registration_success}>
-                            <div style={{
-                                fontSize: '22px',
-                                fontWeight: '600',
-                                color: '#0a7c42',
-                                marginBottom: '12px',
-                            }}>
-                                ✓ Registered Successfully
-                            </div>
-                            <div style={{
-                                fontSize: '16px',
-                                lineHeight: '1.8',
-                                color: '#010031',
-                            }}>
-                                {registrationResult.registration_id && (
-                                    <div><strong>Registration ID:</strong> {registrationResult.registration_id}</div>
-                                )}
-                                {registrationResult.payment_status && (
-                                    <div><strong>Payment Status:</strong> {registrationResult.payment_status}</div>
-                                )}
-                                {registrationResult.amount_due !== undefined && registrationResult.amount_due !== null && (
-                                    <div><strong>Amount Due:</strong> ₹{registrationResult.amount_due}</div>
-                                )}
-                            </div>
-                            <button
-                                className={styles.btn}
-                                style={{ marginTop: '20px', maxWidth: '200px' }}
-                                onClick={() => {
-                                    setRegistrationResult(null)
-                                    props.closeHandler()
-                                }}
-                            >
-                                Close
-                            </button>
+                            {registrationResult.payment_required || (registrationResult.payment_status && registrationResult.payment_status.toUpperCase() === 'PENDING') ? (
+                                <>
+                                    <div style={{
+                                        fontSize: '20px',
+                                        fontWeight: '600',
+                                        color: '#e67e22',
+                                        marginBottom: '12px',
+                                    }}>
+                                        Complete payment to complete registration
+                                    </div>
+                                    <div style={{
+                                        fontSize: '15px',
+                                        lineHeight: '1.8',
+                                        color: '#010031',
+                                    }}>
+                                        {registrationResult.amount_due !== undefined && registrationResult.amount_due !== null && registrationResult.amount_due > 0 && (
+                                            <div><strong>Amount Due:</strong> ₹{registrationResult.amount_due}</div>
+                                        )}
+                                        <p style={{ marginTop: '8px', color: '#555' }}>
+                                            Please complete the payment to confirm your registration. You can also complete payment anytime from your profile.
+                                        </p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                                        <button
+                                            className={styles.btn}
+                                            style={{ background: '#e67e22', color: 'white', border: 'none' }}
+                                            onClick={() => {
+                                                setRegistrationResult(null)
+                                                props.closeHandler()
+                                                router.push('/profile')
+                                            }}
+                                        >
+                                            Go to Profile
+                                        </button>
+                                        <button
+                                            className={styles.btn}
+                                            onClick={() => {
+                                                setRegistrationResult(null)
+                                                props.closeHandler()
+                                            }}
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{
+                                        fontSize: '22px',
+                                        fontWeight: '600',
+                                        color: '#0a7c42',
+                                        marginBottom: '12px',
+                                    }}>
+                                        ✓ Successfully Registered
+                                    </div>
+                                    <div style={{
+                                        fontSize: '15px',
+                                        lineHeight: '1.8',
+                                        color: '#010031',
+                                    }}>
+                                        <p>You have successfully registered for {props.title || 'this event'}!</p>
+                                    </div>
+                                    <button
+                                        className={styles.btn}
+                                        style={{ marginTop: '20px', maxWidth: '200px' }}
+                                        onClick={() => {
+                                            setRegistrationResult(null)
+                                            props.closeHandler()
+                                        }}
+                                    >
+                                        Close
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
 

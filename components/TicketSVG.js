@@ -6,12 +6,12 @@ const SCHEMES = {
     garbha: {
         base0: "#4A0F28", base1: "#6E1638", base2: "#8C2A4C",
         gold: "#D9A94E", goldSoft: "#F0CE8F", cream: "#F7ECD8",
-        passLabel: "GARBHA NIGHT", pills: ["GARBHA NIGHT"]
+        passLabel: "GARBA NIGHT", pills: ["GARBA NIGHT"]
     },
     garbha_stay: {
         base0: "#0D1730", base1: "#17223B", base2: "#223A5E",
         gold: "#D9A94E", goldSoft: "#F0CE8F", cream: "#F2EFE2",
-        passLabel: "GARBHA NIGHT + STAY", pills: ["GARBHA NIGHT", "OVERNIGHT STAY"]
+        passLabel: "GARBA NIGHT + STAY", pills: ["GARBA NIGHT", "OVERNIGHT STAY"]
     }
 };
 
@@ -112,7 +112,7 @@ const TicketSVG = React.forwardRef(function TicketSVG({
                     <text x="90" y="66" fontFamily="'Poppins', sans-serif" fontWeight="500" fontSize="9.5" letterSpacing="1.8" fill={s.gold} opacity="0.9">INDIAN INSTITUTE OF TECHNOLOGY, PATNA</text>
 
                     {/* Hero title */}
-                    <text x="44" y="146" fontFamily="'Yatra One', cursive" fontSize="50" fill={s.cream}>GARBHA</text>
+                    <text x="44" y="146" fontFamily="'Yatra One', cursive" fontSize="50" fill={s.cream}>GARBA</text>
                     <text x="44" y="194" fontFamily="'Yatra One', cursive" fontSize="50" fill={`url(#titleGold-${uid})`}>NIGHT</text>
 
                     {/* Rule with ornament */}

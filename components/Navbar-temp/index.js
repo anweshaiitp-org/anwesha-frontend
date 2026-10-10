@@ -278,7 +278,7 @@ function Navigation() {
                                 Gallery
                             </Link>
                         </li>
-                        <li>
+                        {/* <li>
                             <Link
                                 className={styles.linknav}
                                 style={
@@ -292,7 +292,7 @@ function Navigation() {
                             >
                                 Team
                             </Link>
-                        </li>
+                        </li> */}
                         <li>
                             <Link
                                 className={styles.linknav}

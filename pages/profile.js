@@ -44,17 +44,13 @@ function Profile() {
 
     const [isEditing, setIsEditing] = useState(false) // Toggle edit mode
     const [name, setName] = useState('John Doe') // Default name
-    const [editingAadhaar, setEditingAadhaar] = useState(false)
-    const [aadhaarValue, setAadhaarValue] = useState(profDetails?.aadhaar_number || '')
-    const [aadhaarLoading, setAadhaarLoading] = useState(false)
     const [myntraStatus, setMyntraStatus] = useState(null)
     const [myntraLoading, setMyntraLoading] = useState(true)
 
     const [showEditProfile, setShowEditProfile] = useState(false)
-    const [showChangePassword, setShowChangePassword] = useState(false)
     const [editFormData, setEditFormData] = useState({})
-    const [passwordData, setPasswordData] = useState({ old_password: '', new_password: '' })
     const [uploadingPhoto, setUploadingPhoto] = useState(false)
+    const [profileSaving, setProfileSaving] = useState(false)
 
     useEffect(() => {
         if (showEditProfile && profDetails) {
@@ -126,6 +122,7 @@ function Profile() {
 
     const saveProfile = async (e) => {
         e.preventDefault()
+        setProfileSaving(true)
         try {
             const authHeaders = userData?.getAuthHeaders ? userData.getAuthHeaders() : {}
             const res = await fetch(`${host}/users/profile`, {
@@ -144,29 +141,8 @@ function Profile() {
         } catch (error) {
             console.error(error)
             toast.error(error.message || 'Error updating profile')
-        }
-    }
-
-    const changePassword = async (e) => {
-        e.preventDefault()
-        try {
-            const authHeaders = userData?.getAuthHeaders ? userData.getAuthHeaders() : {}
-            const res = await fetch(`${host}/users/change-password`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authHeaders
-                },
-                body: JSON.stringify(passwordData)
-            })
-            const data = await res.json()
-            if (!res.ok || !data.success) throw new Error(data.message || 'Failed to change password')
-            toast.success('Password changed successfully!')
-            setShowChangePassword(false)
-            setPasswordData({ old_password: '', new_password: '' })
-        } catch (error) {
-            console.error(error)
-            toast.error(error.message || 'Error changing password')
+        } finally {
+            setProfileSaving(false)
         }
     }
 
@@ -205,121 +181,10 @@ function Profile() {
             .catch((error) => console.log('error', error))
     }
 
-    function updateAadhaar() {
-        // Validate Aadhaar format
-        if (!aadhaarValue.match(/^[0-9]{12}$/)) {
-            toast.error('Aadhaar must be exactly 12 digits', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: 'light',
-            })
-            return
-        }
-
-        var myHeaders = new Headers()
-        myHeaders.append('Content-Type', 'application/json')
-        const authHeaders = userData?.getAuthHeaders
-            ? userData.getAuthHeaders()
-            : {}
-        Object.entries(authHeaders).forEach(([k, v]) =>
-            myHeaders.append(k, v)
-        )
-
-        var raw = JSON.stringify({
-            aadhaar_number: aadhaarValue,
-        })
-
-        var requestOptions = {
-            method: 'POST',
-            headers: myHeaders,
-            body: raw,
-            redirect: 'follow',
-        }
-
-        setAadhaarLoading(true)
-        // Since we are not sure if the backend uses POST /user/editprofile or PUT /users/profile for Aadhaar,
-        // we will try PUT /users/profile first, and if that fails, try POST /user/editprofile
-        
-        const tryUpdate = async () => {
-            try {
-                // Try old API first because new API drops unknown fields
-                let success = false;
-                
-                try {
-                    const resOld = await fetch(`${host}/user/editprofile`, requestOptions);
-                    let dataOld = null;
-                    try { dataOld = await resOld.json(); } catch(e) {}
-                    
-                    if (resOld.status === 409) {
-                        throw new Error(dataOld?.message || 'Aadhaar already added');
-                    }
-                    if (resOld.ok) {
-                        success = true;
-                    }
-                } catch (e) {
-                    console.log('Old API failed, trying new API...', e);
-                }
-                
-                if (!success) {
-                    const res = await fetch(`${host}/users/profile`, {
-                        method: 'PUT',
-                        headers: myHeaders,
-                        body: JSON.stringify({ aadhaar_number: aadhaarValue })
-                    });
-                    
-                    let data = null;
-                    try { data = await res.json(); } catch(e) {}
-                    
-                    if (!res.ok || !data?.success) {
-                        throw new Error(data?.message || 'Failed to update Aadhaar number');
-                    }
-                }
-                
-                const newAadhaar = aadhaarValue;
-                
-                // Update local state
-                setProfDetails({ ...profDetails, aadhaar_number: newAadhaar });
-                
-                // Store locally to persist across refreshes since backend might drop it
-                if (typeof window !== 'undefined' && profDetails?.anwesha_id) {
-                    localStorage.setItem(`aadhaar_${profDetails.anwesha_id}`, newAadhaar);
-                }
-                
-                // Update context state directly so it doesn't get wiped out by getUser() if the backend doesn't return it
-                if (userData.setUser && userData.state?.user) {
-                    userData.setUser({ ...userData.state.user, aadhaar_number: newAadhaar });
-                }
-                
-                setEditingAadhaar(false);
-                setAadhaarValue('');
-                toast.success('Aadhaar number updated successfully');
-                
-            } catch (err) {
-                console.error('[Aadhaar] Update error:', err)
-                toast.error(err.message || 'Failed to update Aadhaar number')
-            } finally {
-                setAadhaarLoading(false)
-            }
-        };
-        
-        tryUpdate();
-    }
-
     useEffect(() => {
         // Just use data from authContext instead of fetching again
         if (userData?.state?.user) {
-            let userAadhaar = userData.state.user.aadhaar_number;
-            // Check local storage fallback
-            if (!userAadhaar && typeof window !== 'undefined' && userData.state.user.anwesha_id) {
-                userAadhaar = localStorage.getItem(`aadhaar_${userData.state.user.anwesha_id}`);
-            }
-            
-            setProfDetails({ ...userData.state.user, aadhaar_number: userAadhaar })
-            setAadhaarValue(userAadhaar || '')
+            setProfDetails(userData.state.user)
             if (userData.state.user.qr_code) {
                 setQrcode(userData.state.user.qr_code)
             }
@@ -635,6 +500,41 @@ function Profile() {
                                         </motion.div>
                                     </button>
                                 </div>
+                                <div style={{ marginTop: '12px' }}>
+                                    <Link href="/change-password" style={{ textDecoration: 'none' }}>
+                                        <motion.button
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            style={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                                                border: '1px solid rgba(255, 255, 255, 0.4)',
+                                                color: '#ffffff',
+                                                padding: '7px 16px',
+                                                borderRadius: '6px',
+                                                fontSize: '15px',
+                                                cursor: 'pointer',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                fontWeight: '600',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                transition: 'all 0.2s',
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'
+                                                e.currentTarget.style.borderColor = '#F2BF51'
+                                                e.currentTarget.style.color = '#F2BF51'
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)'
+                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
+                                                e.currentTarget.style.color = '#ffffff'
+                                            }}
+                                        >
+                                            Change Password
+                                        </motion.button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                         </div>
@@ -656,14 +556,6 @@ function Profile() {
                                 </h1>
                                 <h1 className={styles.userDetailsContent}>
                                     {profDetails.phone_number}
-                                </h1>
-                            </div>
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Aadhaar Number
-                                </h1>
-                                <h1 className={styles.userDetailsContent} style={!profDetails.aadhaar_number ? { color: '#999' } : {}}>
-                                    {profDetails.aadhaar_number || 'Not Added'}
                                 </h1>
                             </div>
                         </div>
@@ -705,73 +597,401 @@ function Profile() {
                     </div>
                                         {/* Modals */}
                     {showEditProfile && (
-                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
-                            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                    <h2 style={{ color: 'black', margin: 0 }}>Edit Profile & Password</h2>
-                                    <button onClick={() => setShowEditProfile(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✖</button>
+                        <div
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                backdropFilter: 'blur(8px)',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: 1000,
+                                padding: '20px',
+                            }}
+                            onClick={() => setShowEditProfile(false)}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ duration: 0.25, ease: 'easeOut' }}
+                                style={{
+                                    background: 'linear-gradient(145deg, rgba(22, 22, 28, 0.98), rgba(12, 12, 16, 0.98))',
+                                    border: '1px solid rgba(242, 191, 81, 0.45)',
+                                    borderRadius: '16px',
+                                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(242, 191, 81, 0.12)',
+                                    width: '100%',
+                                    maxWidth: '520px',
+                                    maxHeight: '90vh',
+                                    overflowY: 'auto',
+                                    padding: '30px 28px',
+                                    position: 'relative',
+                                    color: '#ffffff',
+                                    fontFamily: "'Cormorant Garamond', serif",
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Header */}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '10px',
+                                    }}
+                                >
+                                    <h2
+                                        style={{
+                                            color: '#F2BF51',
+                                            margin: 0,
+                                            fontFamily: "'Cinzel Decorative', 'DM Serif Display', serif",
+                                            fontSize: '24px',
+                                            letterSpacing: '1px',
+                                        }}
+                                    >
+                                        Edit Profile
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditProfile(false)}
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.06)',
+                                            border: '1px solid rgba(242, 191, 81, 0.3)',
+                                            color: '#F2BF51',
+                                            borderRadius: '50%',
+                                            width: '32px',
+                                            height: '32px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '16px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                        }}
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'rgba(242, 191, 81, 0.2)'
+                                            e.currentTarget.style.transform = 'scale(1.1)'
+                                        }}
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)'
+                                            e.currentTarget.style.transform = 'scale(1)'
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
                                 </div>
-                                
-                                <h3 style={{ color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Profile Details</h3>
-                                <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
+
+                                <div
+                                    style={{
+                                        width: '100%',
+                                        height: '1px',
+                                        background: 'linear-gradient(90deg, transparent, rgba(242, 191, 81, 0.5), transparent)',
+                                        marginBottom: '22px',
+                                    }}
+                                />
+
+                                {/* Form */}
+                                <form
+                                    onSubmit={saveProfile}
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '16px',
+                                    }}
+                                >
                                     <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Full Name</label>
-                                        <input type="text" value={editFormData.full_name} onChange={e => setEditFormData({...editFormData, full_name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
+                                        <label
+                                            style={{
+                                                color: '#F2BF51',
+                                                display: 'block',
+                                                marginBottom: '6px',
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                letterSpacing: '0.5px',
+                                            }}
+                                        >
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.full_name || ''}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    full_name: e.target.value,
+                                                })
+                                            }
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
+                                                border: '1px solid rgba(242, 191, 81, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#ffffff',
+                                                fontSize: '16px',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={(e) =>
+                                                (e.target.style.borderColor = '#F2BF51')
+                                            }
+                                            onBlur={(e) =>
+                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
+                                            }
+                                            required
+                                        />
                                     </div>
+
                                     <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Phone Number</label>
-                                        <input type="text" value={editFormData.phone_number} onChange={e => setEditFormData({...editFormData, phone_number: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
+                                        <label
+                                            style={{
+                                                color: '#F2BF51',
+                                                display: 'block',
+                                                marginBottom: '6px',
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                letterSpacing: '0.5px',
+                                            }}
+                                        >
+                                            Phone Number
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.phone_number || ''}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    phone_number: e.target.value,
+                                                })
+                                            }
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
+                                                border: '1px solid rgba(242, 191, 81, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#ffffff',
+                                                fontSize: '16px',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={(e) =>
+                                                (e.target.style.borderColor = '#F2BF51')
+                                            }
+                                            onBlur={(e) =>
+                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
+                                            }
+                                            required
+                                        />
                                     </div>
+
                                     <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>College Name</label>
-                                        <input type="text" value={editFormData.collage_name} onChange={e => setEditFormData({...editFormData, collage_name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
+                                        <label
+                                            style={{
+                                                color: '#F2BF51',
+                                                display: 'block',
+                                                marginBottom: '6px',
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                letterSpacing: '0.5px',
+                                            }}
+                                        >
+                                            Institute / College Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.collage_name || ''}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    collage_name: e.target.value,
+                                                })
+                                            }
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
+                                                border: '1px solid rgba(242, 191, 81, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#ffffff',
+                                                fontSize: '16px',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={(e) =>
+                                                (e.target.style.borderColor = '#F2BF51')
+                                            }
+                                            onBlur={(e) =>
+                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
+                                            }
+                                            required
+                                        />
                                     </div>
+
                                     <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Date of Birth</label>
-                                        <input type="date" value={editFormData.dob} onChange={e => setEditFormData({...editFormData, dob: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
+                                        <label
+                                            style={{
+                                                color: '#F2BF51',
+                                                display: 'block',
+                                                marginBottom: '6px',
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                letterSpacing: '0.5px',
+                                            }}
+                                        >
+                                            Date of Birth
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={editFormData.dob || ''}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    dob: e.target.value,
+                                                })
+                                            }
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
+                                                border: '1px solid rgba(242, 191, 81, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#ffffff',
+                                                colorScheme: 'dark',
+                                                fontSize: '16px',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={(e) =>
+                                                (e.target.style.borderColor = '#F2BF51')
+                                            }
+                                            onBlur={(e) =>
+                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
+                                            }
+                                            required
+                                        />
                                     </div>
+
                                     <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Gender</label>
-                                        <select value={editFormData.gender} onChange={e => setEditFormData({...editFormData, gender: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required>
-                                            <option value="">Select Gender</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
+                                        <label
+                                            style={{
+                                                color: '#F2BF51',
+                                                display: 'block',
+                                                marginBottom: '6px',
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                letterSpacing: '0.5px',
+                                            }}
+                                        >
+                                            Gender
+                                        </label>
+                                        <select
+                                            value={editFormData.gender || ''}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    gender: e.target.value,
+                                                })
+                                            }
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 14px',
+                                                backgroundColor: 'rgba(10, 10, 14, 0.95)',
+                                                border: '1px solid rgba(242, 191, 81, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#ffffff',
+                                                fontSize: '16px',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                outline: 'none',
+                                                boxSizing: 'border-box',
+                                                transition: 'border-color 0.2s',
+                                            }}
+                                            onFocus={(e) =>
+                                                (e.target.style.borderColor = '#F2BF51')
+                                            }
+                                            onBlur={(e) =>
+                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
+                                            }
+                                            required
+                                        >
+                                            <option value="" style={{ backgroundColor: '#141418', color: '#888' }}>Select Gender</option>
+                                            <option value="Male" style={{ backgroundColor: '#141418', color: '#fff' }}>Male</option>
+                                            <option value="Female" style={{ backgroundColor: '#141418', color: '#fff' }}>Female</option>
+                                            <option value="Other" style={{ backgroundColor: '#141418', color: '#fff' }}>Other</option>
                                         </select>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                                        <button type="submit" style={{ padding: '8px 16px', border: 'none', background: '#4CAF50', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Save Profile</button>
-                                    </div>
-                                </form>
 
-                                <h3 style={{ color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Aadhaar Number</h3>
-                                <form onSubmit={(e) => { e.preventDefault(); updateAadhaar(); }} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
-                                    <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Aadhaar Number</label>
-                                        <input type="text" value={aadhaarValue} onChange={e => setAadhaarValue(e.target.value.replace(/\D/g, ''))} maxLength="12" style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', backgroundColor: profDetails.aadhaar_number ? '#f5f5f5' : 'white' }} disabled={!!profDetails.aadhaar_number} placeholder={profDetails.aadhaar_number ? "Aadhaar already verified" : "Enter 12-digit Aadhaar"} />
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'flex-end',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            marginTop: '16px',
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEditProfile(false)}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: 'transparent',
+                                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                                color: '#cccccc',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                fontSize: '16px',
+                                                fontWeight: '600',
+                                                transition: 'all 0.2s',
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.6)'
+                                                e.currentTarget.style.color = '#ffffff'
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
+                                                e.currentTarget.style.color = '#cccccc'
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <motion.button
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            type="submit"
+                                            disabled={profileSaving}
+                                            style={{
+                                                padding: '10px 26px',
+                                                background: 'linear-gradient(135deg, #F2BF51, #C39B54)',
+                                                border: 'none',
+                                                color: '#0a0a0c',
+                                                borderRadius: '8px',
+                                                cursor: profileSaving ? 'not-allowed' : 'pointer',
+                                                fontFamily: "'Cormorant Garamond', serif",
+                                                fontSize: '17px',
+                                                fontWeight: '700',
+                                                letterSpacing: '0.5px',
+                                                boxShadow: '0 4px 15px rgba(242, 191, 81, 0.35)',
+                                                opacity: profileSaving ? 0.7 : 1,
+                                            }}
+                                        >
+                                            {profileSaving ? 'Saving...' : 'Save Changes'}
+                                        </motion.button>
                                     </div>
-                                    {!profDetails.aadhaar_number && (
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                                            <button type="submit" disabled={aadhaarLoading || aadhaarValue.length !== 12} style={{ padding: '8px 16px', border: 'none', background: aadhaarLoading || aadhaarValue.length !== 12 ? '#ccc' : '#4CAF50', color: 'white', borderRadius: '4px', cursor: aadhaarLoading || aadhaarValue.length !== 12 ? 'not-allowed' : 'pointer' }}>{aadhaarLoading ? 'Saving...' : 'Save Aadhaar'}</button>
-                                        </div>
-                                    )}
                                 </form>
-
-                                <h3 style={{ color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Change Password</h3>
-                                <form onSubmit={changePassword} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>Old Password</label>
-                                        <input type="password" value={passwordData.old_password} onChange={e => setPasswordData({...passwordData, old_password: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
-                                    </div>
-                                    <div>
-                                        <label style={{ color: 'black', display: 'block', marginBottom: '5px' }}>New Password</label>
-                                        <input type="password" value={passwordData.new_password} onChange={e => setPasswordData({...passwordData, new_password: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} required />
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                                        <button type="submit" style={{ padding: '8px 16px', border: 'none', background: '#2196F3', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Change Password</button>
-                                    </div>
-                                </form>
-                            </div>
+                            </motion.div>
                         </div>
                     )}
                     <MyEvents />

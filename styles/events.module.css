@@ -66,23 +66,7 @@
     z-index: 0;
 }
 
-.mainContainer::after {
-    content: '';
-    position: absolute;
-    top: 1031px;
-    /* 831px (first page) + 200px padding from top */
-    padding-bottom: 200px;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 1031px);
-    background-image: url("/events/circle.png");
-    background-position: center top;
-    background-repeat: repeat-y;
-    background-size: clamp(300px, 50vw, 550px) auto;
-    /* Responsive width: 300px-550px based on viewport, creates spacing between circles */
-    pointer-events: none;
-    z-index: 0;
-}
+
 
 
 .container {
