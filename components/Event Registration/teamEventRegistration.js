@@ -295,10 +295,13 @@ async function teamEventRegistrationNew(
             const regData = data.data || data
             const regId = regData?.registration_id || ''
             const teamId = regData?.team_id || ''
-            const paymentStatus = regData?.payment_status || 'PENDING'
-            const amountDue = regData?.amount_due !== undefined ? Number(regData.amount_due) : 1
+            const paymentRequired = regData?.payment_required !== undefined
+                ? Boolean(regData.payment_required)
+                : (regData?.payment_status === 'PENDING' || regData?.payment_status === 'pending')
+            const paymentStatus = regData?.payment_status || (paymentRequired ? 'PENDING' : 'PAID')
+            const amountDue = regData?.amount_due !== undefined ? Number(regData.amount_due) : (paymentRequired ? 1 : 0)
 
-            const isPending = paymentStatus === 'PENDING' || paymentStatus === 'pending';
+            const isPending = paymentRequired && (paymentStatus === 'PENDING' || paymentStatus === 'pending');
             if (!isPending || amountDue === 0) {
                 let successMsg = data.message || 'Registered successfully'
                 if (regId) successMsg += `\nRegistration ID: ${regId}`
@@ -319,7 +322,7 @@ async function teamEventRegistrationNew(
                 })
             }
 
-            if (isPending && amountDue > 0) {
+            if (isPending) {
                 toast.info('Initiating secure payment gateway...', { autoClose: 2000 })
                 try {
                     const payRes = await fetch(`${host}/payment/initiate`, {

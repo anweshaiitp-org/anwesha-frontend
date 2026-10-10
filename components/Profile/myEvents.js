@@ -100,31 +100,50 @@ function MyEvents() {
                 console.log('[MyEvents] Registrations data:', data)
 
                 // Map response to events and passes state
-                const soloEvents = (data.solo_registrations || data.solo || []).map((reg) => ({
-                    event_id: reg.event_id,
-                    event_name: reg.event_name,
-                    event_venue: reg.event_category || 'TBA',
-                    registration_fee: reg.registration_fee || reg.amount || 0,
-                    payment_done: reg.payment_done !== undefined ? reg.payment_done : (reg.amount > 0),
-                    event_start_time: reg.event_start_time || reg.registration_date,
-                    event_end_time: reg.event_end_time,
-                    payment_url: reg.payment_url,
-                }))
+                const normalizeStatus = (reg) => {
+                    if (reg.payment_status) return String(reg.payment_status).toUpperCase();
+                    if (reg.registration_status === 'CONFIRMED' || reg.payment_done === true || (reg.amount && reg.amount > 0 && reg.payment_status !== 'FAILED')) {
+                        return 'PAID';
+                    }
+                    if (reg.registration_status === 'CANCELLED') return 'CANCELLED';
+                    return 'PENDING';
+                };
 
-                const teamEvents = (data.team_registrations || data.team || []).map((reg) => ({
-                    team_id: reg.team_id,
-                    team_name: reg.team_name,
-                    event_id: reg.event_id,
-                    event_name: reg.event_name,
-                    event_venue: reg.event_category || 'TBA',
-                    registration_fee: reg.registration_fee || reg.amount || 0,
-                    payment_done: reg.payment_done !== undefined ? reg.payment_done : (reg.amount > 0),
-                    event_start_time: reg.event_start_time || reg.registration_date,
-                    event_end_time: reg.event_end_time,
-                    payment_url: reg.payment_url,
-                    is_leader: reg.is_leader !== undefined ? reg.is_leader : true,
-                    team_members: reg.team_members || reg.members || [],
-                }))
+                const soloEvents = (data.solo_registrations || data.solo || data.registered_events || []).map((reg) => {
+                    const status = normalizeStatus(reg);
+                    return {
+                        event_id: reg.event_id,
+                        event_name: reg.event_name,
+                        event_venue: reg.event_category || reg.venue || 'TBA',
+                        registration_fee: reg.registration_fee || reg.amount || 0,
+                        payment_done: status === 'PAID',
+                        payment_status: status,
+                        registration_status: reg.registration_status,
+                        event_start_time: reg.event_start_time || reg.registration_date,
+                        event_end_time: reg.event_end_time,
+                        payment_url: reg.payment_url,
+                    };
+                })
+
+                const teamEvents = (data.team_registrations || data.team || []).map((reg) => {
+                    const status = normalizeStatus(reg);
+                    return {
+                        team_id: reg.team_id,
+                        team_name: reg.team_name,
+                        event_id: reg.event_id,
+                        event_name: reg.event_name,
+                        event_venue: reg.event_category || reg.venue || 'TBA',
+                        registration_fee: reg.registration_fee || reg.amount || 0,
+                        payment_done: status === 'PAID',
+                        payment_status: status,
+                        registration_status: reg.registration_status,
+                        event_start_time: reg.event_start_time || reg.registration_date,
+                        event_end_time: reg.event_end_time,
+                        payment_url: reg.payment_url,
+                        is_leader: reg.is_leader !== undefined ? reg.is_leader : true,
+                        team_members: reg.team_members || reg.members || [],
+                    };
+                })
 
                 setEvents({
                     solo: soloEvents,
@@ -495,6 +514,7 @@ function MyEvents() {
                         Registered Events
                     </div>
                     {events.solo.map((e, key) => {
+                        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase();
                         return (
                             <div key={key} className={styles.pass}>
                                 <img src={'/pics/pass.png'}></img>
@@ -506,19 +526,56 @@ function MyEvents() {
                                     >
                                         {e.event_name}
                                     </div>
-                                    {!e.payment_done && (
-                                        <div style={{ marginTop: '10px' }}>
-                                            <a 
-                                                className={styles.payment_btn} 
-                                                href={`/payment-status?order=${e.event_id}&success=false&status=PENDING`} 
+
+                                    {/* Payment status badge / button */}
+                                    {(status === 'PAID' || status === 'CONFIRMED' || status === 'SUCCESS') && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0a7c42', fontWeight: '600', marginTop: '8px' }}>
+                                            <span style={{ fontSize: '18px' }}>✓</span>
+                                            <span>Paid Successful</span>
+                                        </div>
+                                    )}
+
+                                    {(status === 'CANCELLED' || status === 'CANCELED') && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e67e22', fontWeight: '600', marginTop: '8px' }}>
+                                            <span>✕</span>
+                                            <span>Payment Cancelled</span>
+                                        </div>
+                                    )}
+
+                                    {status === 'FAILED' && (
+                                        <div style={{ marginTop: '8px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff3e3e', fontWeight: '600', marginBottom: '8px' }}>
+                                                <span>⚠</span>
+                                                <span>Payment Failed</span>
+                                            </div>
+                                            <button 
+                                                className={styles.payment_btn}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("SOLO_EVENT", e.event_id);
                                                 }}
-                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none', display: 'inline-block' }}
+                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
+                                            >
+                                                Retry Payment
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {status === 'PENDING' && (
+                                        <div style={{ marginTop: '8px' }}>
+                                            <div style={{ color: '#e67e22', fontWeight: '600', marginBottom: '8px' }}>
+                                                Payment Pending
+                                            </div>
+                                            <button 
+                                                className={styles.payment_btn}
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    initiatePayment("SOLO_EVENT", e.event_id);
+                                                }}
+                                                style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
                                                 Pay Now
-                                            </a>
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -526,6 +583,7 @@ function MyEvents() {
                         )
                     })}
                     {events.team.map((e, key) => {
+                        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase();
                         return (
                             <div key={key} className={styles.pass}>
                                 <img src={'/pics/pass.png'}></img>
@@ -537,12 +595,12 @@ function MyEvents() {
                                     >
                                         {e.event_name}
                                     </div>
-                                    <div>
-                                        Team : {e.team_name}
+                                    <div style={{ marginTop: '4px', color: '#ddd' }}>
+                                        Team: <strong>{e.team_name}</strong>
                                     </div>
                                     {e.team_members && e.team_members.length > 0 && (
                                         <div style={{ fontSize: '0.9rem', marginTop: '8px', color: '#ccc' }}>
-                                            <strong>Team Members (Anwesha IDs):</strong>
+                                            <strong>Team Members:</strong>
                                             <div style={{ marginTop: '4px', paddingLeft: '10px' }}>
                                                 {e.team_members.map((member, idx) => (
                                                     <div key={idx}>
@@ -552,19 +610,56 @@ function MyEvents() {
                                             </div>
                                         </div>
                                     )}
-                                    {!e.payment_done && (
-                                        <div style={{ marginTop: '10px' }}>
-                                            <a 
-                                                className={styles.payment_btn} 
-                                                href={`/payment-status?order=${e.team_id}&success=false&status=PENDING`}
+
+                                    {/* Payment status badge / button */}
+                                    {(status === 'PAID' || status === 'CONFIRMED' || status === 'SUCCESS') && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0a7c42', fontWeight: '600', marginTop: '8px' }}>
+                                            <span style={{ fontSize: '18px' }}>✓</span>
+                                            <span>Paid Successful</span>
+                                        </div>
+                                    )}
+
+                                    {(status === 'CANCELLED' || status === 'CANCELED') && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e67e22', fontWeight: '600', marginTop: '8px' }}>
+                                            <span>✕</span>
+                                            <span>Payment Cancelled</span>
+                                        </div>
+                                    )}
+
+                                    {status === 'FAILED' && (
+                                        <div style={{ marginTop: '8px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff3e3e', fontWeight: '600', marginBottom: '8px' }}>
+                                                <span>⚠</span>
+                                                <span>Payment Failed</span>
+                                            </div>
+                                            <button 
+                                                className={styles.payment_btn}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
                                                 }}
-                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none', display: 'inline-block' }}
+                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
+                                            >
+                                                Retry Payment
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {status === 'PENDING' && (
+                                        <div style={{ marginTop: '8px' }}>
+                                            <div style={{ color: '#e67e22', fontWeight: '600', marginBottom: '8px' }}>
+                                                Payment Pending
+                                            </div>
+                                            <button 
+                                                className={styles.payment_btn}
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
+                                                }}
+                                                style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
                                                 Pay Now
-                                            </a>
+                                            </button>
                                         </div>
                                     )}
                                 </div>

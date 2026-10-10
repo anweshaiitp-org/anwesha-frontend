@@ -25,6 +25,9 @@ import VideoPlayer from './jumscare'
 import CountdownTimer from './jumscaretimeout'
 import HeroSection from '../components/Hero/Hero'
 import EventDetailsModal from '../components/BigModal'
+import SpecialEventFeature from '../components/SpecialEvent/SpecialEventFeature'
+import AccommodationModal from '../components/Accommodation/AccommodationModal'
+import AccommodationSection from '../components/Accommodation/AccommodationSection'
 // import Spline from '@splinetool/react-spline';
 import { useRouter } from 'next/router'
 
@@ -261,11 +264,32 @@ const makePosterUrl = (url) => {
         return url
     }
 
-    // If it's a relative path, prepend NEXT_PUBLIC_MEDIA_BASE
+    if (
+        url.startsWith('/events/') ||
+        url.startsWith('/images/') ||
+        url.startsWith('/pics/') ||
+        url.startsWith('/home/') ||
+        url.startsWith('/assets/')
+    ) {
+        return url
+    }
+
+    if (
+        url.startsWith('events/') ||
+        url.startsWith('images/') ||
+        url.startsWith('pics/') ||
+        url.startsWith('home/') ||
+        url.startsWith('assets/')
+    ) {
+        return `/${url}`
+    }
+
+    const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
     const mediaBase =
-        process.env.NEXT_PUBLIC_MEDIA_BASE ||
-        'https://storage.googleapis.com/anwesha-storage-bucket'
-    return `${mediaBase}/${url}`
+        process.env.NEXT_PUBLIC_MEDIA_BASE || host
+    const base = (mediaBase || '').replace(/\/$/, '')
+    const path = url.startsWith('/') ? url : `/${url}`
+    return `${base}${path}`
 }
 
 const ImageWithText = ({
@@ -686,6 +710,21 @@ const IndexPage = () => {
     const [events, setEvents] = useState([])
     const [specialEvents, setSpecialEvents] = useState([])
     const [selectedSpecialEvent, setSelectedSpecialEvent] = useState(null)
+    const [showAccommodationModal, setShowAccommodationModal] = useState(false)
+
+    useEffect(() => {
+        // Show accommodation modal once per session / visit
+        if (typeof window !== 'undefined') {
+            const hasSeen = sessionStorage.getItem('anwesha_acc_modal_shown')
+            if (!hasSeen) {
+                const timer = setTimeout(() => {
+                    setShowAccommodationModal(true)
+                    sessionStorage.setItem('anwesha_acc_modal_shown', 'true')
+                }, 1000)
+                return () => clearTimeout(timer)
+            }
+        }
+    }, [])
     useEffect(() => {
         let host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -721,7 +760,10 @@ const IndexPage = () => {
     const pseudoEventImage = adjustList(
         events.map((event, idx) => {
             const posterUrl =
-                event.poster_file || event.poster || '/events/poster.png'
+                event.poster_url ||
+                event.poster_file ||
+                event.poster ||
+                '/events/poster.png'
             console.log(`[HomePage] Event ${idx} poster:`, posterUrl)
             return {
                 id: event.id || event._id,
@@ -970,36 +1012,20 @@ const IndexPage = () => {
 
                     {/* Special Events */}
                     {specialEvents.length > 0 && (
-                        <section className={styles.special_events}>
-                            <div className={styles.sexy_title}>
-                                <h2 className={dmSerif.className}>Special Events</h2>
-                                <h3>Experience the highlights of Anwesha</h3>
-                            </div>
-                            <div className={styles.special_events_grid}>
-                                {specialEvents.slice(0, 3).map((event, index) => {
-                                    const poster = event.poster_file || event.poster || event.poster_url || '/events/poster.png'
-                                    const title = event.name || event['Event Name'] || 'Special Event'
-                                    return (
-                                        <button type="button" className={styles.special_event_card}
-                                            key={event.id || event._id || `${title}-${index}`}
-                                            onClick={() => window.open(`/events/${event.id || event._id}`, '_blank')}>
-                                            <div className={styles.special_event_poster}
-                                                style={{ backgroundImage: `url(${poster})` }}>
-                                                <span>{title.split('#')[0]}</span>
-                                            </div>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </section>
-                    )}
-                    {selectedSpecialEvent && (
-                        <EventDetailsModal
-                            title={(selectedSpecialEvent.name || selectedSpecialEvent['Event Name'] || 'Special Event').split('#')[0]}
-                            body={selectedSpecialEvent}
-                            closeHandler={() => setSelectedSpecialEvent(null)}
-                        />
-                    )}
+    <SpecialEventFeature
+        event={specialEvents[0]}
+        posterUrl={makePosterUrl(
+            specialEvents[0].poster_file ||
+            specialEvents[0].poster ||
+            specialEvents[0].poster_url
+        )}
+    />
+)}
+
+                    <AccommodationModal
+                        isOpen={showAccommodationModal}
+                        onClose={() => setShowAccommodationModal(false)}
+                    />
 
                     {/* MERCH */}
                     <section className={styles.merch} id="merch">
@@ -1184,6 +1210,13 @@ const IndexPage = () => {
                             </div>
                         </div>
                     </section>
+
+                    {/* Accommodation Section */}
+                    <AccommodationSection
+                        onRequestAccommodation={() => {
+                            router.push('/accommodation')
+                        }}
+                    />
 
                     {/* Sponsors */}
 

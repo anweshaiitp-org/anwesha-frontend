@@ -150,7 +150,7 @@ const SendVerification = () => {
                                     ? 'SENDING...' 
                                     : cooldown > 0 
                                         ? `RESEND IN ${cooldown}s` 
-                                        : 'RESEND'}
+                                        : 'SEND EMAIL'}
                             </button>
                         </div>
 

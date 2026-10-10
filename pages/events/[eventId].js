@@ -50,6 +50,18 @@ const EventDetailsPage = () => {
                     foundEvent = specialList.find(e => e.id === eventId || e._id === eventId)
                 }
 
+                if (!foundEvent) {
+                    // Try single event endpoint directly
+                    const singleRes = await fetch(`${host}/events/${eventId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                    if (singleRes.ok) {
+                        const singleData = await singleRes.json()
+                        foundEvent = singleData.event || singleData.data || singleData
+                    }
+                }
+
                 if (foundEvent) {
                     setEvent({
                         ...foundEvent,
@@ -76,8 +88,9 @@ const EventDetailsPage = () => {
         if (userData.isAuth) {
             setIsRegistering(true)
             try {
-                if (event.is_active) {
-                    if (event.is_solo) {
+                if (event.is_active !== false) {
+                    const isSolo = event.is_solo || (event.max_team_size === 1 && event.min_team_size === 1) || event.max_team_size === 1;
+                    if (isSolo) {
                         const result = await soloEventRegistrationNew(
                             event.id || event._id,
                             router,
@@ -96,7 +109,7 @@ const EventDetailsPage = () => {
                                 max_team_size: event.max_team_size,
                                 min_team_size: event.min_team_size,
                                 registration_fee: event.registration_fee,
-                                user_type: userData.state.user.user_type,
+                                user_type: userData.state?.user?.user_type || '',
                                 tags: event.tags,
                             },
                         })
@@ -142,27 +155,51 @@ const EventDetailsPage = () => {
                     <hr style={{ borderColor: '#333', marginBottom: '40px' }} />
 
                     {registrationResult && (
-                            <div className={modalStyles.registration_success} style={{ backgroundColor: '#2a2a2a', padding: '20px', borderRadius: '10px', marginBottom: '30px' }}>
-                            <div style={{ fontSize: '22px', fontWeight: '600', color: '#0a7c42', marginBottom: '12px' }}>
-                                ✓ Registered Successfully
-                            </div>
-                            <div style={{ fontSize: '16px', lineHeight: '1.8', color: 'white' }}>
-                                {registrationResult.registration_id && (
-                                    <div><strong>Registration ID:</strong> {registrationResult.registration_id}</div>
-                                )}
-                                {registrationResult.payment_status && (
-                                    <div><strong>Payment Status:</strong> {registrationResult.payment_status}</div>
-                                )}
-                                {registrationResult.amount_due !== undefined && registrationResult.amount_due !== null && (
-                                    <div><strong>Amount Due:</strong> ₹{registrationResult.amount_due}</div>
-                                )}
-                            </div>
-                            <button
-                                style={{ marginTop: '20px', padding: '10px 20px', background: '#0a7c42', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-                                onClick={() => setRegistrationResult(null)}
-                            >
-                                Close
-                            </button>
+                        <div className={modalStyles.registration_success} style={{ backgroundColor: '#2a2a2a', padding: '24px', borderRadius: '10px', marginBottom: '30px' }}>
+                            {registrationResult.payment_required || (registrationResult.payment_status && registrationResult.payment_status.toUpperCase() === 'PENDING') ? (
+                                <>
+                                    <div style={{ fontSize: '20px', fontWeight: '600', color: '#e67e22', marginBottom: '12px' }}>
+                                        Complete payment to complete registration
+                                    </div>
+                                    <div style={{ fontSize: '15px', lineHeight: '1.8', color: '#eee' }}>
+                                        {registrationResult.amount_due !== undefined && registrationResult.amount_due !== null && registrationResult.amount_due > 0 && (
+                                            <div><strong>Amount Due:</strong> ₹{registrationResult.amount_due}</div>
+                                        )}
+                                        <p style={{ marginTop: '8px', color: '#aaa' }}>
+                                            Please complete the payment to confirm your registration. You can also complete payment anytime from your profile.
+                                        </p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                                        <button
+                                            style={{ padding: '10px 20px', background: '#e67e22', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                                            onClick={() => router.push('/profile')}
+                                        >
+                                            Go to Profile
+                                        </button>
+                                        <button
+                                            style={{ padding: '10px 20px', background: '#444', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                                            onClick={() => setRegistrationResult(null)}
+                                        >
+                                            Close
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: '22px', fontWeight: '600', color: '#0a7c42', marginBottom: '12px' }}>
+                                        ✓ Successfully Registered
+                                    </div>
+                                    <div style={{ fontSize: '15px', lineHeight: '1.8', color: '#eee' }}>
+                                        <p>You have successfully registered for {title || 'this event'}!</p>
+                                    </div>
+                                    <button
+                                        style={{ marginTop: '20px', padding: '10px 20px', background: '#0a7c42', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                                        onClick={() => setRegistrationResult(null)}
+                                    >
+                                        Close
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
 
@@ -218,6 +255,12 @@ const EventDetailsPage = () => {
                                         <p style={{ margin: '5px 0' }}><strong>Registration Fee:</strong> ₹{event.registration_fee}</p>
                                     ) : null}
                                     
+                                    {event.registration_deadline ? (
+                                        <p style={{ margin: '5px 0' }}>
+                                            <strong>Registration Deadline:</strong> {new Date(event.registration_deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </p>
+                                    ) : null}
+
                                     {event.prize && <p style={{ margin: '5px 0' }}><strong>Prizes worth:</strong> ₹{event.prize}</p>}
                                 </div>
 
