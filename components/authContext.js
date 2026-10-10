@@ -41,6 +41,7 @@ const PrivateRoute = ({ children }) => {
             '/profile',
             '/event-registration',
             '/event-registrations',
+            '/submit-id',
         ]
         const isProtectedRoute = protectedPrefixes.some((route) =>
             router.pathname.startsWith(route)
@@ -59,10 +60,14 @@ const PrivateRoute = ({ children }) => {
             '/user/reset_password',
             '/verify-email',
             '/send-verification',
-            '/submit-id',
         ].some((route) => router.pathname.startsWith(route))
 
-        if (!auth.isAuth && isProtectedRoute && !isPublicAuthPage) {
+        const hasStoredToken =
+            typeof window !== 'undefined' &&
+            Boolean(localStorage.getItem('anwesha_token')) &&
+            !isTokenExpired(localStorage.getItem('anwesha_token'))
+
+        if (!auth.isAuth && !hasStoredToken && isProtectedRoute && !isPublicAuthPage) {
             const callback = encodeURIComponent(router.asPath || router.pathname)
             router.push(`/userLogin?callbackUrl=${callback}`)
         }

@@ -31,18 +31,28 @@ export default function SubmitId() {
     const [formError, setFormError] = useState('')
     const [dragActive, setDragActive] = useState(false)
 
-    // Step 1: read token from query params; fall back to JWT auth token so
-    // logged-in users can access the page directly without an email link.
+    // Ensure user is logged in before allowing access to this page
+    useEffect(() => {
+        if (!router.isReady) return
+        const storedToken =
+            typeof window !== 'undefined'
+                ? localStorage.getItem('anwesha_token')
+                : null
+        if (!auth?.token && !storedToken) {
+            router.replace(
+                `/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`
+            )
+        }
+    }, [router.isReady, auth?.token, router.asPath])
+
+    // Step 1: read verification token from query params
     useEffect(() => {
         if (!router.isReady) return
         const t = router.query.token
         if (typeof t === 'string' && t) {
             setEmailToken(t)
-        } else if (auth?.token) {
-            // Use the user's own JWT as the verification token fallback
-            setEmailToken(auth.token)
         }
-    }, [router.isReady, router.query.token, auth?.token])
+    }, [router.isReady, router.query.token])
 
     // Surface existing verification state from profile (UPLOADED / VERIFIED)
     useEffect(() => {
@@ -201,9 +211,9 @@ export default function SubmitId() {
                         {isTokenMissingOrInvalid ? (
                             <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(255, 0, 0, 0.1)', borderRadius: '10px', border: '1px solid #ff8888' }}>
                                 <svg style={{ width: 64, height: 64, color: '#ff8888', margin: '0 auto 16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                <h2 style={{ color: '#ff8888', marginBottom: 12 }}>Invalid or Missing Token</h2>
+                                <h2 style={{ color: '#ff8888', marginBottom: 12 }}>Invalid or Missing Verification Token</h2>
                                 <p style={{ color: '#fff', fontSize: '1.1rem' }}>
-                                    Please <a href="/userLogin" style={{ color: '#F2BF51', textDecoration: 'underline' }}>log in</a> or open the secure link from your email to verify your identity.
+                                    Please open the secure ID submission link provided in the verification email sent to your account.
                                 </p>
                             </div>
                         ) : (
@@ -317,7 +327,7 @@ export default function SubmitId() {
                                         
                                         <button
                                             type="submit"
-                                            disabled={submitting || (!emailToken && !auth?.token)}
+                                            disabled={submitting || !emailToken || !auth?.token}
                                             style={{
                                                 padding: '16px 24px',
                                                 background: submitting ? '#666' : 'linear-gradient(90deg, #F2BF51 0%, #d49c25 100%)',
