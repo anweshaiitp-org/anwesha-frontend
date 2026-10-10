@@ -405,7 +405,11 @@ function Navigation() {
                     <div className={styles.hero_button}>
                         <button
                             onClick={() => {
-                                router.push('/userLogin')
+                                if (!userData.isAuth) {
+                                    router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
+                                } else {
+                                    router.push('/profile')
+                                }
                             }}
                             className={cn(
                                 styles.sexy_button,
@@ -553,7 +557,7 @@ function Navigation() {
                             </div>
                         ) : (
                             <Link
-                                href="/userLogin"
+                                href={`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`}
                                 onClick={() => toggleDrawer()}
                             >
                                 Login

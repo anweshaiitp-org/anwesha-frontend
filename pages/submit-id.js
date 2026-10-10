@@ -98,7 +98,7 @@ export default function SubmitId() {
             const msg = 'Please login to submit your ID.'
             setFormError(msg)
             notify('error', msg)
-            router.push('/userLogin')
+            router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
             return
         }
         if (!ID_CARD_TYPES.includes(idType)) {
@@ -156,7 +156,7 @@ export default function SubmitId() {
             const msg = err?.message || 'Submission failed. Please try again.'
             setFormError(msg)
             notify('error', msg)
-            if (err?.code === 401) router.push('/userLogin')
+            if (err?.code === 401) router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
         } finally {
             setSubmitting(false)
         }

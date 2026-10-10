@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import styles from './style.module.css'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
@@ -14,6 +15,7 @@ const cn = (...classes) => {
 }
 
 const UserLoginForm = () => {
+    const router = useRouter()
     const context = useContext(AuthContext)
     const [email, setEmail] = React.useState('')
     const [password, setPassword] = React.useState('')
@@ -112,9 +114,16 @@ const UserLoginForm = () => {
                     theme: 'light',
                 })
 
+                const callbackUrl =
+                    router.query.callbackUrl ||
+                    router.query.redirect ||
+                    router.query.returnUrl ||
+                    '/profile'
+
                 setTimeout(() => {
                     context.getUser()
-                }, 100)
+                    router.push(callbackUrl)
+                }, 150)
 
                 return
             }

@@ -20,6 +20,19 @@ const EventDetailsPage = () => {
     const makePosterUrl = (url) => {
         if (!url) return '/events/poster.png'
         if (url.startsWith('http://') || url.startsWith('https://')) return url
+        if (
+            url === '/events/poster.png' ||
+            url === '/events/poster1.png' ||
+            url === 'events/poster.png' ||
+            url === 'events/poster1.png' ||
+            url.startsWith('/images/') ||
+            url.startsWith('/pics/') ||
+            url.startsWith('/home/') ||
+            url.startsWith('/assets/') ||
+            url.startsWith('/multicity/')
+        ) {
+            return url.startsWith('/') ? url : `/${url}`
+        }
         const base = (mediaBase || '').replace(/\/$/, '')
         const path = url.startsWith('/') ? url : `/${url}`
         return `${base}${path}`
@@ -63,9 +76,47 @@ const EventDetailsPage = () => {
                 }
 
                 if (foundEvent) {
+                    let resolvedPoster = ''
+                    const candidatePoster = foundEvent.poster_url || foundEvent.poster || foundEvent.poster_file
+                    if (candidatePoster && (candidatePoster.startsWith('http://') || candidatePoster.startsWith('https://'))) {
+                        resolvedPoster = candidatePoster
+                    } else if (
+                        candidatePoster &&
+                        (candidatePoster === '/events/poster.png' ||
+                         candidatePoster === '/events/poster1.png' ||
+                         candidatePoster === 'events/poster.png' ||
+                         candidatePoster === 'events/poster1.png' ||
+                         candidatePoster.startsWith('/images/') ||
+                         candidatePoster.startsWith('/pics/') ||
+                         candidatePoster.startsWith('/home/') ||
+                         candidatePoster.startsWith('/assets/') ||
+                         candidatePoster.startsWith('/multicity/'))
+                    ) {
+                        resolvedPoster = candidatePoster.startsWith('/') ? candidatePoster : `/${candidatePoster}`
+                    } else if (candidatePoster) {
+                        // S3 key (e.g. events/EVT-...) - fetch the signed URL
+                        try {
+                            const targetId = foundEvent.id || foundEvent._id || eventId
+                            const posterRes = await fetch(`${host}/events/${targetId}/poster`)
+                            if (posterRes.ok) {
+                                const posterData = await posterRes.json()
+                                if (posterData?.success && posterData?.url) {
+                                    resolvedPoster = posterData.url
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Failed to fetch poster URL', err)
+                        }
+                    }
+
+                    if (!resolvedPoster) {
+                        resolvedPoster = makePosterUrl(candidatePoster)
+                    }
+
                     setEvent({
                         ...foundEvent,
-                        poster: makePosterUrl(foundEvent.poster_file || foundEvent.poster || foundEvent.poster_url),
+                        poster: resolvedPoster,
+                        poster_url: resolvedPoster,
                         name: foundEvent.name || foundEvent["Event Name"] || '',
                     })
                 }
@@ -124,7 +175,7 @@ const EventDetailsPage = () => {
                 setIsRegistering(false)
             }
         } else {
-            router.push('/userLogin')
+            router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
         }
     }
 
@@ -207,9 +258,14 @@ const EventDetailsPage = () => {
                         <div className={styles.eventBody}>
                             <div className={styles.eventMedia}>
                                 <img
-                                    src={event.poster || '/events/poster.png'}
+                                    src={event.poster || event.poster_url || '/events/poster.png'}
                                     alt={title}
                                     className={styles.poster}
+                                    onError={(e) => {
+                                        if (e.target.src !== '/events/poster.png') {
+                                            e.target.src = '/events/poster.png'
+                                        }
+                                    }}
                                 />
                                 {event.video && (
                                     <a

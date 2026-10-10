@@ -68,7 +68,7 @@ const EventRegistration = () => {
         arr[0] = anwID
         setMemberID(arr)
         if (!data.isAuth) {
-            router.push('/userLogin')
+            router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
         }
     }, [data])
 
