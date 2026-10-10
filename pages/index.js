@@ -760,7 +760,10 @@ const IndexPage = () => {
     const pseudoEventImage = adjustList(
         events.map((event, idx) => {
             const posterUrl =
-                event.poster_file || event.poster || '/events/poster.png'
+                event.poster_url ||
+                event.poster_file ||
+                event.poster ||
+                '/events/poster.png'
             console.log(`[HomePage] Event ${idx} poster:`, posterUrl)
             return {
                 id: event.id || event._id,
