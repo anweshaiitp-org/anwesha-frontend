@@ -24,4 +24,4 @@ Beginner to intermediate levels of knowledge in **HTML**, **CSS** and **Javascri
 4. You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
 
 
-We will review your contributions and either merge your pull request or suggest changes. Hence you are encouraged to **keep yourselves updated both on the PR chat thread as well as the discord channel** at least until your PR has been merged. Points will be awarded in **accordance with CODEPEAK's guidelines and scoring criteria**. You can connect with us on the `anwesha-frontend` discord channel of the Codepeak discord server in case any doubts or discrepancies arise.
+We will review your contributions and either merge your pull request or suggest changes.Hence you are encouraged to **keep yourselves updated both on the PR chat thread as well as the discord channel** at least until your PR has been merged. Points will be awarded in **accordance with CODEPEAK's guidelines and scoring criteria**. You can connect with us on the `anwesha-frontend` discord channel of the Codepeak discord server in case any doubts or discrepancies arise.
