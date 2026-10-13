@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from 'react'
-import styles from '../styles/terms.module.css'
+import styles from '/styles/terms.module.css'
 const terms = () => {
     return (
         <div className={styles.parentcontainer}>
