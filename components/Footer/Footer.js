@@ -117,9 +117,10 @@ const Footer = () => {
                 >
                   Contact us :
                 </span>
-                <br />
-                For Event issues: +91 8825253741
-                <br />
+                
+               <div>For Technical issues: +91 8789445978,+91 8467989069</div>
+                <div>For Event issues: +91 8825253741</div>
+                
 
                 <span style={{ color: "cyan" }}>Note: </span> If the site is
                 stuck, please clear site data or login in incognito.

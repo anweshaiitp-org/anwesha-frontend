@@ -1,91 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Laila:wght@300;400;500;600;700&family=Lisu+Bosa:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.cdnfonts.com/css/sf-ironsides');
+@import url('https://fonts.cdnfonts.com/css/laila');
 @font-face {
-    font-family: 'Lisu Bosa';
-    src: url('/font/Lisu-Bosa-Regular.otf');
+    font-family: 'Lisu_Bosa';
+    src: url('../styles/fonts/Lisu_Bosa/LisuBosa-Regular.ttf');
     font-weight: normal;
     font-style: normal;
 }
 @font-face {
-    font-family: 'DM Serif Display';
-    src: url('/font/DMSerifDisplay-Regular.ttf');
+    font-family: 'Cinzel_Decorative';
+    src: url('../styles/fonts/Cinzel_Decorative/CinzelDecorative-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'DM_Serif_Display';
+    src: url('../styles/fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'SF Ironsides';
+    src: url('/font/SF-Ironsides.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 .parentcontainer {
-    /* position: relative; */
     background-image: url('../images/background.png');
     background-size: cover;
     background-repeat: no-repeat;
-
-    color: rgb(255, 255, 255);
-    padding: 150px 150px 100px 120px;
-    font-family: 'Lisu Bosa', sans-serif;
-    /* overflow: hidden; */
     background-attachment: fixed;
+    color: #ffffff;
+    padding: 150px 150px 100px 120px;
+    font-family: 'Laila', 'Lisu_Bosa', 'Lisu Bosa', serif;
+    position: relative;
+    min-height: 100vh;
 }
-
 .parentcontainer::before {
     content: "";
-    position: relative;
+    position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.35); /* adjust darkness here */
+    background-color: rgba(0, 0, 0, 0.45);
     z-index: 1;
-    /* background-attachment: fixed; */
-
 }
-
 .parentcontainer > * {
     position: relative;
     z-index: 2;
 }
-
 .parentcontainer > h2 {
-    color: #DEB25B;
-    font-family: 'DM Serif Display', serif;
+    color: #ffffff;
+    font-family: 'Cinzel_Decorative', 'Cinzel Decorative', 'DM_Serif_Display', 'DM Serif Display', serif;
 }
 .head {
-    color: #002886;
-    font-family: 'DM Serif Display', serif;
-    font-size: 44px;
+    color: #ffffff;
+    font-family: 'Cinzel_Decorative', 'Cinzel Decorative', 'DM_Serif_Display', 'DM Serif Display', serif;
+    font-size: 48px;
     font-style: normal;
     font-weight: 700;
     line-height: normal;
     margin-left: -2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .hr {
-    width: 486px;
+    width: 320px;
+    max-width: 100%;
     height: 6px;
     border-radius: 3.2px;
     background: #415991;
     border: none;
+    margin-top: 10px;
 }
 .para {
-    color: #c0bcbc;
-    font-family: 'Lisu Bosa', sans-serif;
+    color: #ffffff;
+    font-family: 'Laila', 'Lisu_Bosa', 'Lisu Bosa', serif;
     font-size: 20px;
     font-style: normal;
     font-weight: 400;
-    line-height: normal;
-    margin-bottom: 8px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+.para a {
+    color: #deb25b;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+}
+.para a:hover {
+    color: #ffffff;
 }
 .subheading {
-    color: #DEB25B;
-    font-family: 'DM Serif Display', serif;
-    font-size: 36px;
+    color: #deb25b;
+    font-family: 'DM_Serif_Display', 'DM Serif Display', 'Cinzel', serif;
+    font-size: 32px;
     font-style: normal;
     font-weight: 700;
-    line-height: normal;
-    padding-bottom: 10px;
+    line-height: 1.3;
+    padding-bottom: 8px;
+    margin-top: 24px;
 }
 .list {
     margin-left: 40px;
+    margin-block: 12px;
 }
 .sec {
-    margin-block: 1em;
+    margin-block: 1.5em;
 }
 .listitem {
-    color: #c0bcbc;
+    color: #ffffff;
     font-size: 20px;
-    font-family: 'Lisu Bosa', sans-serif;
+    font-family: 'Laila', 'Lisu_Bosa', 'Lisu Bosa', serif;
+    line-height: 1.7;
+    margin-bottom: 6px;
+}
+.listitem p {
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    margin-bottom: 0;
+}
+.listitem a {
+    color: #deb25b;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+}
+.listitem a:hover {
+    color: #ffffff;
 }
 .listitem::before {
     margin-left: 1.5em;
@@ -97,19 +139,25 @@
 }
 @media only screen and (max-width: 555px) {
     .hr {
-        width: auto;
+        width: 100%;
+        max-width: 260px;
     }
     .head {
-        font-size: 40px;
+        font-size: 32px;
     }
     .para {
-        font-size: 17px;
-        margin-bottom: 6px;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 8px;
     }
     .subheading {
-        font-size: 35px;
+        font-size: 24px;
     }
     .list {
         margin-left: 20px;
+    }
+    .listitem {
+        font-size: 16px;
+        line-height: 1.6;
     }
 }
