@@ -146,6 +146,9 @@ const UserRegisterForm = () => {
                             <p className={styles.register_page_subheading}>
                                 Non IITP Students register with their personal email
                             </p>
+                            <p className={styles.email_warning}>
+                                If the verification email is not received at your college email, use your personal email and select Student as the user type.
+                            </p>
                         </div>
 
                         <div className={styles.field}>

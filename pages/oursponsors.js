@@ -1143,7 +1143,7 @@ const Oursponsors = () => {
                                             : ''
                                     }
                                 >
-                                    2025-2027
+                                    2025-2026
                                 </a>
                                 <a
                                     onClick={() => setYear('spons26')}
@@ -1153,7 +1153,7 @@ const Oursponsors = () => {
                                             : ''
                                     }
                                 >
-                                    2027-2027
+                                    2026-2027
                                 </a>
                             </div>
                         )}

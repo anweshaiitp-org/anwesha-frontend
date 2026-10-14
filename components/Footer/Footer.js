@@ -51,7 +51,7 @@ const Footer = () => {
             <Link href="/" aria-label="Anwesha home">
               <Image src="/navbar/logo.svg" alt="Anwesha logo" width={200} height={72} />
             </Link>
-            <p className={styles.tagline}>The annual techno-cultural fest of IIT Patna.</p>
+            <p className={styles.tagline}>The annual socio-cultural fest of IIT Patna.</p>
             <ul className={styles.socials}>
               {socials.map(({ label, href, Icon }) => (
                 <li key={label}>
