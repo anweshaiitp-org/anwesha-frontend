@@ -130,7 +130,7 @@ const Contact = () => {
                                 <input
                                     className={styles.register_button}
                                     type="button"
-                                    onClick={() => window.open("https://docs.google.com/forms/d/e/1FAIpQLScR8UWOVtnmGXufFQcVWsDi08Dz7SLZmBraENK5yAl8X7COkg/viewform", "_blank")}
+                                    onClick={() => window.open("https://docs.google.com/forms/d/e/1FAIpQLSd2hsdjUlw-ZNVPFy0KrqE8emSrD82hG9SEA8JeQ4bHvF_J2Q/viewform?usp=header", "_blank")}
                                     value="Google Form"
                                 />
                             </div>

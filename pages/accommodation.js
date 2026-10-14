@@ -7,7 +7,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ButtonLoader } from '../components/Loader'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
-const GOLD = '#F2BF51'
 
 /* ------------------------------------------------------------------ */
 /* Styles                                                              */
@@ -23,7 +22,7 @@ const css = `
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ambient gold light, no hard edges */
+/* ambient starry purple light matching backdrop2_home.png and AccommodationSection.js */
 .ac-page::before {
     content: '';
     position: absolute;
@@ -33,8 +32,9 @@ const css = `
     height: 760px;
     transform: translateX(-50%);
     background:
-        radial-gradient(ellipse at 50% 30%, rgba(242, 191, 81, 0.20), transparent 62%),
-        radial-gradient(ellipse at 15% 55%, rgba(242, 191, 81, 0.07), transparent 60%);
+        radial-gradient(ellipse at 50% 30%, rgba(147, 51, 234, 0.14), transparent 65%),
+        radial-gradient(ellipse at 20% 55%, rgba(255, 255, 255, 0.05), transparent 60%);
+    filter: blur(25px);
     pointer-events: none;
     z-index: -1;
 }
@@ -60,7 +60,7 @@ const css = `
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(19px, 2.3vw, 26px);
     line-height: 1.5;
-    color: ${GOLD};
+    color: rgba(255, 255, 255, 0.85);
     max-width: 640px;
     margin: 0 auto;
 }
@@ -70,7 +70,7 @@ const css = `
     height: 2px;
     border: 0;
     margin: 30px auto 0;
-    background: linear-gradient(90deg, transparent, ${GOLD}, transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
 }
 
 /* ---------- layout ---------- */
@@ -103,15 +103,17 @@ const css = `
     gap: 20px;
     flex-wrap: wrap;
     margin: 0 0 44px;
-    padding: 22px 26px;
+    padding: 24px 28px;
     border-radius: 16px;
-    background: linear-gradient(90deg, rgba(242, 191, 81, 0.14), rgba(242, 191, 81, 0.03));
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .ac-login h3 {
     font-family: 'DM Serif Display', serif;
     font-weight: 400;
-    color: ${GOLD};
+    color: #ffffff;
     font-size: 24px;
     margin: 0 0 4px;
 }
@@ -119,7 +121,7 @@ const css = `
 .ac-login p {
     font-family: 'Cormorant Garamond', serif;
     font-size: 19px;
-    color: #d8d3c6;
+    color: rgba(255, 255, 255, 0.75);
     margin: 0;
 }
 
@@ -131,6 +133,7 @@ const css = `
     padding: 14px 18px;
     border-radius: 12px;
     background: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.3);
     box-shadow: inset 3px 0 0 #e74c3c;
     color: #ffb3a9;
     font-size: 15px;
@@ -149,13 +152,13 @@ const css = `
 .ac-form-head p {
     font-family: 'Cormorant Garamond', serif;
     font-size: 20px;
-    color: #b9b4a8;
+    color: rgba(255, 255, 255, 0.7);
     margin: 0 0 8px;
 }
 
 .ac-section {
     padding: 34px 0;
-    border-top: 1px solid rgba(242, 191, 81, 0.18);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -165,7 +168,7 @@ const css = `
     font-family: 'DM Serif Display', serif;
     font-weight: 400;
     font-size: 22px;
-    color: ${GOLD};
+    color: #ffffff;
     margin: 0;
 }
 
@@ -174,14 +177,14 @@ const css = `
     margin-bottom: 8px;
     font-size: 14px;
     font-weight: 600;
-    color: #e6e1d3;
+    color: #ffffff;
 }
 
 .ac-hint {
     display: block;
     margin-top: 7px;
     font-size: 13px;
-    color: #8f8f98;
+    color: rgba(255, 255, 255, 0.55);
     line-height: 1.5;
 }
 
@@ -193,20 +196,20 @@ const css = `
     font-size: 15px;
     color: #ffffff;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.ac-input::placeholder { color: #6f6f78; }
+.ac-input::placeholder { color: rgba(255, 255, 255, 0.4); }
 
-.ac-input:hover { background: rgba(255, 255, 255, 0.07); }
+.ac-input:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.25); }
 
 .ac-input:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.07);
-    border-color: ${GOLD};
-    box-shadow: 0 0 0 4px rgba(242, 191, 81, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.25);
 }
 
 .ac-input[type='date'] { color-scheme: dark; }
@@ -228,15 +231,18 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font: inherit;
     font-weight: 600;
     font-size: 15px;
-    color: ${GOLD};
-    background: rgba(242, 191, 81, 0.10);
-    border: 1px solid rgba(242, 191, 81, 0.45);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 11px;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
-.ac-btn-ghost:hover { background: rgba(242, 191, 81, 0.2); }
+.ac-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.45);
+}
 
 .ac-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 
@@ -248,10 +254,10 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: ${GOLD};
-    background: rgba(242, 191, 81, 0.11);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
-    box-shadow: inset 0 0 0 1px rgba(242, 191, 81, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .ac-chip button {
@@ -261,43 +267,43 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     height: 22px;
     padding: 0;
     color: #ffb0a6;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     border: 0;
     border-radius: 50%;
     cursor: pointer;
     transition: background 0.2s ease;
 }
 
-.ac-chip button:hover { background: rgba(231, 76, 60, 0.35); }
+.ac-chip button:hover { background: rgba(231, 76, 60, 0.4); }
 
 /* stepper */
 .ac-stepper {
     display: flex;
     align-items: stretch;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 11px;
     overflow: hidden;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ac-stepper:focus-within {
-    border-color: ${GOLD};
-    box-shadow: 0 0 0 4px rgba(242, 191, 81, 0.16);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.25);
 }
 
 .ac-stepper button {
     flex: none;
     width: 46px;
     font-size: 20px;
-    color: ${GOLD};
+    color: #ffffff;
     background: transparent;
     border: 0;
     cursor: pointer;
     transition: background 0.2s ease;
 }
 
-.ac-stepper button:hover { background: rgba(242, 191, 81, 0.12); }
+.ac-stepper button:hover { background: rgba(255, 255, 255, 0.12); }
 
 .ac-stepper input {
     flex: 1;
@@ -321,10 +327,11 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
 .ac-mismatch {
     margin: 0;
     font-size: 14px;
-    color: ${GOLD};
-    background: rgba(242, 191, 81, 0.08);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
     padding: 10px 14px;
     border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* gender selector */
@@ -340,8 +347,8 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     gap: 12px;
     padding: 14px 18px;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
@@ -349,19 +356,19 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
 
 .ac-gender-option:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(242, 191, 81, 0.35);
+    border-color: rgba(255, 255, 255, 0.35);
 }
 
 .ac-gender-option.selected {
-    background: rgba(242, 191, 81, 0.12);
-    border-color: ${GOLD};
-    box-shadow: 0 0 0 1px ${GOLD}, 0 0 0 4px rgba(242, 191, 81, 0.16);
+    background: rgba(147, 51, 234, 0.16);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 1px #ffffff, 0 0 0 4px rgba(147, 51, 234, 0.25);
 }
 
 .ac-gender-option input[type='radio'] {
     width: 18px;
     height: 18px;
-    accent-color: ${GOLD};
+    accent-color: #ffffff;
     cursor: pointer;
     margin: 0;
 }
@@ -381,7 +388,14 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     padding: 16px 18px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.ac-switch:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .ac-switch-text strong {
@@ -393,7 +407,7 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
 
 .ac-switch-text span {
     font-size: 13px;
-    color: #9a9aa3;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .ac-switch input {
@@ -408,7 +422,7 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     width: 48px;
     height: 28px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.16);
     transition: background 0.25s ease;
 }
 
@@ -424,9 +438,9 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.ac-switch input:checked + .ac-track { background: ${GOLD}; }
-.ac-switch input:checked + .ac-track::after { transform: translateX(20px); background: #1a1405; }
-.ac-switch input:focus-visible + .ac-track { outline: 2px solid ${GOLD}; outline-offset: 3px; }
+.ac-switch input:checked + .ac-track { background: #ffffff; }
+.ac-switch input:checked + .ac-track::after { transform: translateX(20px); background: #050508; }
+.ac-switch input:focus-visible + .ac-track { outline: 2px solid #ffffff; outline-offset: 3px; }
 
 /* primary button */
 .ac-btn-primary {
@@ -435,23 +449,24 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font: inherit;
     font-size: 17px;
     font-weight: 700;
-    letter-spacing: 0.01em;
-    color: #1a1405;
-    background: linear-gradient(135deg, #F7D27A, #F2BF51 45%, #C39B54);
+    letter-spacing: 0.02em;
+    color: #000000;
+    background: #ffffff;
     border: 0;
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 10px 34px rgba(242, 191, 81, 0.28);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    box-shadow: 0 6px 25px rgba(255, 255, 255, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    margin-top: 10px;
 }
 
 .ac-btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    filter: brightness(1.05);
-    box-shadow: 0 16px 42px rgba(242, 191, 81, 0.38);
+    background: #f0f0f0;
+    box-shadow: 0 10px 32px rgba(255, 255, 255, 0.35);
 }
 
-.ac-btn-primary:disabled { cursor: not-allowed; opacity: 0.65; }
+.ac-btn-primary:disabled { cursor: not-allowed; opacity: 0.55; }
 
 .ac-btn-primary.ac-inline { width: auto; padding: 12px 28px; font-size: 16px; }
 
@@ -467,10 +482,10 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.ac-btn-outline:hover { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.5); }
+.ac-btn-outline:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.5); }
 
 .ac-page button:focus-visible,
-.ac-page a:focus-visible { outline: 2px solid ${GOLD}; outline-offset: 3px; }
+.ac-page a:focus-visible { outline: 2px solid #ffffff; outline-offset: 3px; }
 
 /* ---------- aside ---------- */
 .ac-aside h3 {
@@ -493,7 +508,7 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font-size: 15px;
 }
 
-.ac-summary li span:first-child { color: #9d9da6; }
+.ac-summary li span:first-child { color: rgba(255, 255, 255, 0.6); }
 .ac-summary li span:last-child { color: #ffffff; font-weight: 600; text-align: right; }
 
 .ac-feature-list { list-style: none; margin: 0; padding: 0; }
@@ -504,11 +519,11 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     gap: 14px;
     align-items: start;
     padding: 15px 0;
-    border-bottom: 1px solid rgba(242, 191, 81, 0.13);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.ac-feature-list li:first-child { border-top: 1px solid rgba(242, 191, 81, 0.28); }
-.ac-feature-list li:last-child { border-bottom-color: rgba(242, 191, 81, 0.28); }
+.ac-feature-list li:first-child { border-top: 1px solid rgba(255, 255, 255, 0.2); }
+.ac-feature-list li:last-child { border-bottom-color: rgba(255, 255, 255, 0.2); }
 
 .ac-ico {
     width: 40px;
@@ -516,13 +531,13 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     border-radius: 50%;
     display: grid;
     place-items: center;
-    color: ${GOLD};
-    background: radial-gradient(circle at 30% 25%, rgba(242, 191, 81, 0.22), rgba(242, 191, 81, 0.05) 70%);
-    box-shadow: inset 0 0 0 1px rgba(242, 191, 81, 0.3);
+    color: #ffffff;
+    background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 70%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .ac-feature-list strong { display: block; color: #ffffff; font-size: 15px; font-weight: 600; margin-bottom: 2px; }
-.ac-feature-list span.ac-desc { color: #a9a9b2; font-size: 14px; line-height: 1.5; }
+.ac-feature-list span.ac-desc { color: rgba(255, 255, 255, 0.65); font-size: 14px; line-height: 1.5; }
 
 .ac-rules { list-style: none; margin: 0; padding: 0; }
 
@@ -532,7 +547,7 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font-family: 'Cormorant Garamond', serif;
     font-size: 19px;
     line-height: 1.5;
-    color: #d6d1c4;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .ac-rules li::before {
@@ -543,8 +558,8 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: ${GOLD};
-    box-shadow: 0 0 0 4px rgba(242, 191, 81, 0.16);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15);
 }
 
 /* ---------- success ---------- */
@@ -571,13 +586,14 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     font-weight: 400;
     font-size: clamp(32px, 4.4vw, 46px);
     margin: 0 0 12px;
+    color: #ffffff;
 }
 
 .ac-success > p {
     font-family: 'Cormorant Garamond', serif;
     font-size: 21px;
     line-height: 1.55;
-    color: #bdb8ac;
+    color: rgba(255, 255, 255, 0.75);
     margin: 0 auto 36px;
     max-width: 48ch;
 }
@@ -587,7 +603,9 @@ textarea.ac-input { resize: vertical; min-height: 96px; line-height: 1.5; }
     margin: 0 auto 36px;
     padding: 8px 28px;
     border-radius: 18px;
-    background: linear-gradient(160deg, rgba(242, 191, 81, 0.09), rgba(255, 255, 255, 0.02));
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .ac-receipt .ac-summary li { padding: 16px 0; }
@@ -1043,7 +1061,7 @@ export default function AccommodationPage() {
                                         <span className="ac-hint">The main applicant responsible for the group booking.</span>
                                     </div>
 
-                                    <div>
+                                    {/* <div>
                                         <label className="ac-label" htmlFor="ac-member">Additional group members (optional)</label>
                                         <div className="ac-add-row">
                                             <input
@@ -1082,7 +1100,7 @@ export default function AccommodationPage() {
                                                 ))}
                                             </div>
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {/* Gender selection */}
@@ -1141,7 +1159,7 @@ export default function AccommodationPage() {
                                         </div>
                                     </div>
 
-                                    <label className="ac-switch" htmlFor="messAddonPage">
+                                    {/* <label className="ac-switch" htmlFor="messAddonPage">
                                         <span className="ac-switch-text">
                                             <strong>Mess and dining meal add-on</strong>
                                             <span>Wholesome campus meals during your stay</span>
@@ -1153,7 +1171,7 @@ export default function AccommodationPage() {
                                             onChange={(e) => setMessAddons(e.target.checked)}
                                         />
                                         <span className="ac-track" aria-hidden="true" />
-                                    </label>
+                                    </label> */}
                                 </div>
 
                                 {/* Notes */}

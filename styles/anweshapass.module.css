@@ -305,11 +305,13 @@
     text-shadow: 0px 0px 10px rgba(255, 255, 255, 1);
 }
 
-@media screen and (max-width: 550px) {
+@media screen and (max-width: 768px) {
     .linkContainer {
-        right: 50%;
-        /* Position at the horizontal center */
-        transform: translateX(50%);
+        position: static;
+        margin: 10px auto 24px;
+        align-self: center;
+        width: max-content;
+        z-index: 10;
     }
 }
 
@@ -1122,6 +1124,8 @@
 
 .Melody_Night {
     display: flex;
+    position: relative;
+    margin-top: 40px;
     padding: 100px 64px 100px 64px;
     justify-content: center;
     align-items: center;
@@ -1152,6 +1156,7 @@
 .Melody_Night_body>div>h2 {
     align-self: stretch;
     color: var(--Color-Primary500, #F2BF51);
+    margin-bottom: 20px;
 
     /* SF/SF - 64 Reg */
     font-family: 'Cinzel_Decorative', serif;
@@ -1166,6 +1171,7 @@
 .Melody_Night_body>div>h3 {
     align-self: stretch;
     color: #fff;
+    text-align: center;
 
     /* AN/AN - 24 */
     font-family: 'Cinzel_Decorative', serif;
@@ -1187,6 +1193,10 @@
     font-weight: 400;
     line-height: 150%;
     /* 30px */
+}
+
+.Melody_Night_body>div:last-child {
+    align-self: center;
 }
 
 .Melody_Night_hero {
@@ -1257,9 +1267,17 @@
 }
 
 @media only screen and (max-width: 768px) {
+    .Melody_Night {
+        padding-bottom: 0;
+    }
+
+    .passcontainer {
+        margin-top: 0;
+    }
+
     .Melody_Night_body {
         gap: 22px;
-        margin-bottom: 90px;
+        margin-bottom: 0;
     }
 
     .Melody_Night_body>div {
@@ -1282,6 +1300,8 @@
     .Melody_Night {
         padding-left: 15px;
         padding-right: 15px;
+        padding-top: 0;
+        padding-bottom: 0;
     }
 
     .Melody_Night_body {
@@ -1300,7 +1320,7 @@
     }
 
     .Melody_Night_hero {
-        height: 500px;
+        height: auto;
     }
 
     .Melody_Night_body>p {
@@ -1310,7 +1330,7 @@
 
     .Melody_Night_imgbg img {
         width: 100%;
-        height: 100%;
+        height: auto;
     }
 }
 
@@ -1320,7 +1340,7 @@
     }
 
     .Melody_Night_hero {
-        height: 350px;
+        height: auto;
     }
 }
 

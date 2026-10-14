@@ -307,6 +307,7 @@ function Anweshapass() {
     const [isloading, setisloading] = useState(false);
     const [eventActiveImageIndex, setEventActiveImageIndex] = useState(2); // don't set on boundary
     const [eventActiveImageIndexPrevDir, setEventActiveImageIndexPrevDir] = useState(false);
+    const [garbaEvent, setGarbaEvent] = useState(null);
 
     useEffect(() => {
         const refreshPage = () => {
@@ -314,6 +315,21 @@ function Anweshapass() {
         };
 
         refreshPage();
+    }, []);
+
+    useEffect(() => {
+        async function fetchGarbaEvent() {
+            try {
+                const res = await fetch(`${host}/events/special`)
+                const data = await res.json()
+                const list = data.events || data.special_events || data || []
+                const garba = Array.isArray(list) ? list.find(e => e.special_event_type === 'GARBA' || (e.name && e.name.toLowerCase().includes('garba'))) : null
+                if (garba) setGarbaEvent(garba)
+            } catch (e) {
+                console.log('Failed to fetch garba event')
+            }
+        }
+        fetchGarbaEvent()
     }, []);
 
     useEffect(() => {
@@ -397,22 +413,51 @@ function Anweshapass() {
         //     </div>
         // </div>
         <div className={styles.container}>
-            <div className={styles.linkContainer}>
-                <a
-                    href="https://drive.google.com/file/d/173X6YlCzY5McPT-5tA_-l2O4I0Pm-n0K/view?usp=drivesdk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    How to buy the festival passes
-                </a>
-            </div>
+            {/* -------------------------------------Garba Night Pass---------------------------------------- */}
+            <section className={styles.Melody_Night}>
+                <div className={styles.linkContainer}>
+                    <a
+                        href="https://drive.google.com/file/d/173X6YlCzY5McPT-5tA_-l2O4I0Pm-n0K/view?usp=drivesdk"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        How to buy the festival passes
+                    </a>
+                </div>
+                <div className={styles.Melody_Night_hero}>
+                    <div className={styles.Melody_Night_background} />
+                    <div className={styles.Melody_Night_imgbg}>
+                        {garbaEvent && (
+                            <img src={garbaEvent.poster_url || garbaEvent.poster} width="420" alt="Garba Passes" style={{ borderRadius: '8px', maxWidth: '100%', height: 'auto' }} />
+                        )}
+                    </div>
+                </div>
+                <div className={styles.Melody_Night_body}>
+                    <div>
+                        <h2 style={{ marginBottom: '20px' }}>GARBA PASSES</h2>
+                        <h3>Rhythm, Tradition, and Celebration</h3>
+                    </div>
+                    <p>
+                        Get ready to twirl, clap, and dance the night away! Brought to you by Anwesha—the annual techno-cultural fest of IIT Patna—this Garba night promises an unforgettable evening of music, color, and culture.
+                    </p>
+                    <div style={{ marginTop: '20px' }}>
+                        <a
+                            href={`/events/${garbaEvent?.id || 'EVT-108c0047-dc9f-4c85-b60e-348db7f4a721'}`}
+                        >
+                            <button className={styles.register_button}>
+                                GRAB NOW
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </section>
 
             {/* ------------------------Pass container--------------------------------------------------- */}
             <section className={styles.passcontainer} id="passcontainer">
                 <div className={styles.passcontainer_body}>
 
                     <div>
-                        <h2>Anwesha 2027 FESTIVAL Passes</h2>
+                        <h2>Anwesha 2026 FESTIVAL Passes</h2>
                         <h3>STEP INTO THE REVERIE</h3>
                     </div>
                     <p>
@@ -441,8 +486,12 @@ function Anweshapass() {
                                 <div className={styles.tshirt_blue} />
                             </div>
                             <div className={styles.passcontainer_button} >
-                                <button className={styles.register_button} onClick={handlefestpass}>
-                                    {isloading ? 'GRABBING...' : 'GRAB NOW'}
+                                <button
+                                    className={styles.register_button}
+                                    disabled
+                                    style={{ opacity: 1, cursor: 'not-allowed', pointerEvents: 'none' }}
+                                >
+                                    CLOSED
                                 </button>
                                 <div className={styles.event_dates}><p>for 6th, 7th, and 8th Feb</p></div>
                                 {/* <div className={styles.earlybird}><p>💀 Early Bird Offer ! Till 6 Feb 11:59 PM 💀</p></div>

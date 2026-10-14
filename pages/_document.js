@@ -20,7 +20,7 @@ export default function Document() {
         "@id": "https://anwesha.iitp.ac.in/#organization",
         "name": "IIT Patna",
         "url": "https://www.iitp.ac.in",
-        "logo": "https://anwesha.iitp.ac.in/home/logo.png"
+        "logo": "https://anwesha.iitp.ac.in/newanweshalogo.svg?v=2027"
       },
       {
         "@type": "Festival",
@@ -74,7 +74,7 @@ export default function Document() {
         <meta property="og:description" content="Official cultural fest of IIT Patna - Anwesha 2027. East India's premier annual cultural extravaganza featuring Pronites, star concerts, cultural competitions, and workshops." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://anwesha.iitp.ac.in" />
-        <meta property="og:image" content="https://anwesha.iitp.ac.in/home/logo.png" />
+        <meta property="og:image" content="https://anwesha.iitp.ac.in/newanweshalogo.svg?v=2027" />
         <meta property="og:image:alt" content="Anwesha IIT Patna Logo" />
         <meta property="og:locale" content="en_IN" />
 
@@ -84,7 +84,7 @@ export default function Document() {
         <meta name="twitter:creator" content="@anweshaiitp" />
         <meta name="twitter:title" content="Anwesha 2027 | IIT Patna - Annual Socio-Cultural Festival" />
         <meta name="twitter:description" content="Official cultural fest of IIT Patna - Anwesha 2027. East India's premier annual cultural extravaganza." />
-        <meta name="twitter:image" content="https://anwesha.iitp.ac.in/home/logo.png" />
+        <meta name="twitter:image" content="https://anwesha.iitp.ac.in/newanweshalogo.svg?v=2027" />
 
         {/* Structured Data (JSON-LD) for Search Engine Rich Results */}
         <script
