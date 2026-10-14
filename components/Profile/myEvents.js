@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ExitStatusModal from './ExitStatusModal'
 import Loader, { ButtonLoader } from '../Loader'
+import Link from 'next/link'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -31,6 +32,7 @@ function MyEvents() {
     const [exitPass, setExitPass] = useState(null)
     const [loadingEvents, setLoadingEvents] = useState(true)
     const [payingId, setPayingId] = useState(null)
+    const [ticket, setTicket] = useState(null)
     const userData = useContext(AuthContext)
     const authHeaders = userData?.getAuthHeaders ? userData.getAuthHeaders() : {}
 
@@ -118,6 +120,34 @@ function MyEvents() {
             `Mark your exit from ${registration.event_name}?\n\nYour QR code will stop working and you can't re-enter.`
         )
         if (confirmed) requestExit(registration)
+    }
+
+    const renderTicketControls = (e) => {
+        if (!ticket || e.exited_at || !isConfirmedRegistration(e)) return null
+
+        if (ticket.available && ticket.link) {
+            return (
+                <div style={{ marginTop: '10px' }}>
+                    <Link
+                        href={ticket.link}
+                        className={styles.payment_btn}
+                        style={{ padding: '8px 16px', background: '#370f58', color: '#e8d9a8', border: '1.5px solid #4f1c7a', borderRadius: '4px', fontWeight: '600', display: 'inline-block', textDecoration: 'none', boxShadow: '0 0 12px rgba(178, 83, 255, 0.3)' }}
+                    >
+                        View Ticket
+                    </Link>
+                </div>
+            )
+        }
+
+        if (ticket.reason === 'ID_NOT_VERIFIED') {
+            return (
+                <div style={{ marginTop: '10px', color: '#c9bcd9', fontSize: '0.9rem' }}>
+                    Your ticket will appear here once your college ID and Aadhaar card are verified.
+                </div>
+            )
+        }
+
+        return null
     }
 
     const renderExitControls = (e) => {
@@ -289,6 +319,7 @@ function MyEvents() {
                     entered: Boolean(data.entered),
                     revokedAt: data.ticket_revoked_at || null,
                 })
+                setTicket(data.ticket || null)
 
                 // Map response to events and passes state
                 const normalizeStatus = (reg) => {
@@ -784,6 +815,7 @@ function MyEvents() {
                                         </div>
                                     )}
 
+                                    {renderTicketControls(e)}
                                     {renderExitControls(e)}
                                 </div>
                             </div>
@@ -876,6 +908,7 @@ function MyEvents() {
                                         </div>
                                     )}
 
+                                    {renderTicketControls(e)}
                                     {renderExitControls(e)}
                                 </div>
                             </div>

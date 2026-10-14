@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { AuthContext } from '../components/authContext'
+import MyAccommodation, { hasActiveAccommodation } from '../components/Accommodation/MyAccommodation'
 import { toast } from 'react-toastify'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ButtonLoader } from '../components/Loader'
@@ -760,6 +761,16 @@ export default function AccommodationPage() {
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [submissionSuccess, setSubmissionSuccess] = useState(null)
+    const [accRefreshKey, setAccRefreshKey] = useState(0)
+    const [hasActiveRequest, setHasActiveRequest] = useState(false)
+
+    const handleAccommodationLoaded = useCallback((requests) => {
+        setHasActiveRequest(hasActiveAccommodation(requests))
+    }, [])
+
+    useEffect(() => {
+        if (submissionSuccess) setAccRefreshKey((key) => key + 1)
+    }, [submissionSuccess])
 
     useEffect(() => {
         if (user?.anwesha_id) {
@@ -992,6 +1003,15 @@ export default function AccommodationPage() {
                     </motion.div>
                 )}
 
+                {isAuth && (
+                    <MyAccommodation
+                        getAuthHeaders={authContext?.getAuthHeaders}
+                        highlightId={typeof router.query.request === 'string' ? router.query.request : undefined}
+                        refreshKey={accRefreshKey}
+                        onLoaded={handleAccommodationLoaded}
+                    />
+                )}
+
                 {submissionSuccess ? (
                     /* ---------------- Success ---------------- */
                     <motion.div className="ac-success" {...fadeUp(0)}>
@@ -999,7 +1019,7 @@ export default function AccommodationPage() {
                             <CheckBig />
                         </div>
                         <h2>Request submitted</h2>
-                        <p>Your accommodation request is received and is being reviewed by the hospitality team.</p>
+                        <p>Your accommodation request is received. Once our team allots a room, you will get an email with a payment link. You can also pay from this page.</p>
 
                         <div className="ac-receipt">
                             <ul className="ac-summary">
@@ -1015,12 +1035,9 @@ export default function AccommodationPage() {
                             <button type="button" className="ac-btn-primary ac-inline" onClick={() => router.push('/profile')}>
                                 Go to profile
                             </button>
-                            <button type="button" className="ac-btn-outline" onClick={() => setSubmissionSuccess(null)}>
-                                Submit another request
-                            </button>
                         </div>
                     </motion.div>
-                ) : (
+                ) : isAuth && hasActiveRequest ? null : (
                     <div className="ac-grid">
                         {/* ---------------- Form ---------------- */}
                         <motion.div {...fadeUp(0.3)}>
