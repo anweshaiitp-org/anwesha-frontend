@@ -1,16 +1,38 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react'
-import styles from './profile.module.css'
 import { AuthContext } from '../authContext'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import ExitStatusModal from './ExitStatusModal'
 import Loader, { ButtonLoader } from '../Loader'
 import Link from 'next/link'
+import { CalendarDays, CreditCard, DoorOpen, LogOut, MapPin, Ticket, Users } from 'lucide-react'
+import ev from './MyEvents.module.css'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 const isConfirmedRegistration = (registration) =>
     registration.payment_done || registration.registration_status === 'CONFIRMED'
+
+const STATUS_BADGES = {
+    PAID: { label: 'Paid', tone: 'success' },
+    CONFIRMED: { label: 'Confirmed', tone: 'success' },
+    SUCCESS: { label: 'Paid', tone: 'success' },
+    PENDING: { label: 'Payment pending', tone: 'warning' },
+    FAILED: { label: 'Payment failed', tone: 'danger' },
+    CANCELLED: { label: 'Cancelled', tone: 'muted' },
+    CANCELED: { label: 'Cancelled', tone: 'muted' },
+}
+
+const formatSchedule = (start, end) => {
+    const startDate = start ? new Date(start) : null
+    if (!startDate || Number.isNaN(startDate.getTime())) return null
+    const options = { timeZone: 'Asia/Kolkata' }
+    const day = startDate.toLocaleDateString('en-IN', { ...options, weekday: 'short', day: 'numeric', month: 'short' })
+    const time = (date) => date.toLocaleTimeString('en-IN', { ...options, hour: 'numeric', minute: '2-digit' })
+    const endDate = end ? new Date(end) : null
+    const hasEnd = endDate && !Number.isNaN(endDate.getTime())
+    return `${day} · ${time(startDate)}${hasEnd ? ` – ${time(endDate)}` : ''} IST`
+}
 
 const formatExitTime = (value) =>
     new Date(value).toLocaleString('en-IN', {
@@ -127,24 +149,20 @@ function MyEvents() {
 
         if (ticket.available && ticket.link) {
             return (
-                <div style={{ marginTop: '10px' }}>
-                    <Link
-                        href={ticket.link}
-                        className={styles.payment_btn}
-                        style={{ padding: '8px 16px', background: '#370f58', color: '#e8d9a8', border: '1.5px solid #4f1c7a', borderRadius: '4px', fontWeight: '600', display: 'inline-block', textDecoration: 'none', boxShadow: '0 0 12px rgba(178, 83, 255, 0.3)' }}
-                    >
-                        View Ticket
-                    </Link>
-                </div>
+                <Link href={ticket.link} className={ev.primaryAction}>
+                    <Ticket size={16} aria-hidden="true" />
+                    View ticket
+                </Link>
             )
         }
 
-        if (ticket.reason === 'ID_NOT_VERIFIED') {
-            return (
-                <div style={{ marginTop: '10px', color: '#c9bcd9', fontSize: '0.9rem' }}>
-                    Your ticket will appear here once your college ID and Aadhaar card are verified.
-                </div>
-            )
+        const pendingNotes = {
+            ID_NOT_VERIFIED: 'Your ticket will appear here once your college ID and Aadhaar card are verified.',
+            TICKET_NOT_SENT: 'Your documents are verified. Your ticket will appear here as soon as the Anwesha team issues it.',
+        }
+
+        if (pendingNotes[ticket.reason]) {
+            return <p className={ev.note}>{pendingNotes[ticket.reason]}</p>
         }
 
         return null
@@ -155,45 +173,104 @@ function MyEvents() {
 
         if (e.exited_at) {
             return (
-                <div style={{ marginTop: '10px' }}>
-                    <div style={{ color: '#ff8a80', fontWeight: '600', marginBottom: '8px' }}>
-                        Exited at {formatExitTime(e.exited_at)} · QR revoked
-                    </div>
+                <>
+                    <p className={ev.exitedNote}>Exited at {formatExitTime(e.exited_at)} · QR revoked</p>
                     <button
-                        className={styles.payment_btn}
+                        type="button"
+                        className={ev.secondaryAction}
                         disabled={isBusy}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            requestExit(e);
-                        }}
-                        style={{ padding: '8px 16px', background: 'transparent', color: '#F2BF51', border: '1px solid #F2BF51', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
+                        onClick={() => requestExit(e)}
                     >
                         <ButtonLoader loading={isBusy} label="Loading…">
-                            View Exit Pass
+                            <DoorOpen size={16} aria-hidden="true" />
+                            View exit pass
                         </ButtonLoader>
                     </button>
-                </div>
+                </>
             )
         }
 
         if (!canExit(e)) return null
 
         return (
-            <div style={{ marginTop: '10px' }}>
-                <button
-                    className={styles.payment_btn}
-                    disabled={isBusy}
-                    onClick={(event) => {
-                        event.preventDefault();
-                        handleExit(e);
-                    }}
-                    style={{ padding: '8px 16px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
-                >
-                    <ButtonLoader loading={isBusy} label="Exiting…">
-                        Exit Event
-                    </ButtonLoader>
-                </button>
-            </div>
+            <button
+                type="button"
+                className={ev.dangerAction}
+                disabled={isBusy}
+                onClick={() => handleExit(e)}
+            >
+                <ButtonLoader loading={isBusy} label="Exiting…">
+                    <LogOut size={16} aria-hidden="true" />
+                    Exit event
+                </ButtonLoader>
+            </button>
+        )
+    }
+
+    const renderPaymentControls = (e, kind) => {
+        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase()
+        if (status !== 'PENDING' && status !== 'FAILED') return null
+        const payKey = kind === 'team' ? (e.team_id || e.event_id) : e.event_id
+        return (
+            <button
+                type="button"
+                className={ev.primaryAction}
+                disabled={payingId === payKey}
+                onClick={() => (kind === 'team'
+                    ? initiatePayment('TEAM_EVENT', e.event_id, e.team_id)
+                    : initiatePayment('SOLO_EVENT', e.event_id))}
+            >
+                <ButtonLoader loading={payingId === payKey} label="Processing">
+                    <CreditCard size={16} aria-hidden="true" />
+                    {status === 'FAILED' ? 'Retry payment' : 'Pay now'}
+                </ButtonLoader>
+            </button>
+        )
+    }
+
+    const renderRegistration = (e, kind) => {
+        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase()
+        const badge = STATUS_BADGES[status] || STATUS_BADGES.PENDING
+        const schedule = formatSchedule(e.event_start_time, e.event_end_time)
+        const members = (e.team_members || []).map((member) => member?.anwesha_id || member).filter(Boolean)
+        const venue = e.event_venue && e.event_venue !== 'TBA' ? e.event_venue : null
+
+        return (
+            <li key={`${kind}-${e.team_id || e.event_id}`} className={ev.card}>
+                <div className={ev.cardHead}>
+                    <div className={ev.titleBlock}>
+                        <span className={ev.kind}>{kind === 'team' ? 'Team event' : 'Solo event'}</span>
+                        <h3 className={ev.eventName}>{e.event_name}</h3>
+                    </div>
+                    <span className={`${ev.badge} ${ev[badge.tone]}`}>{badge.label}</span>
+                </div>
+
+                {(schedule || venue || kind === 'team') && (
+                    <ul className={ev.meta}>
+                        {schedule && (
+                            <li><CalendarDays size={15} aria-hidden="true" />{schedule}</li>
+                        )}
+                        {venue && (
+                            <li><MapPin size={15} aria-hidden="true" />{venue}</li>
+                        )}
+                        {kind === 'team' && e.team_name && (
+                            <li><Users size={15} aria-hidden="true" />{e.team_name}</li>
+                        )}
+                    </ul>
+                )}
+
+                {members.length > 0 && (
+                    <p className={ev.members}>
+                        <span>Members:</span> {members.join(', ')}
+                    </p>
+                )}
+
+                <div className={ev.actions}>
+                    {renderPaymentControls(e, kind)}
+                    {renderTicketControls(e)}
+                    {renderExitControls(e)}
+                </div>
+            </li>
         )
     }
 
@@ -336,13 +413,13 @@ function MyEvents() {
                     return {
                         event_id: reg.event_id,
                         event_name: reg.event_name,
-                        event_venue: reg.event_category || reg.venue || 'TBA',
+                        event_venue: reg.venue || reg.event_category || 'TBA',
                         registration_fee: reg.registration_fee || reg.amount || 0,
                         payment_done: status === 'PAID',
                         payment_status: status,
                         registration_status: reg.registration_status,
-                        event_start_time: reg.event_start_time || reg.registration_date,
-                        event_end_time: reg.event_end_time,
+                        event_start_time: reg.start_time || reg.event_start_time || null,
+                        event_end_time: reg.end_time || reg.event_end_time || null,
                         payment_url: reg.payment_url,
                         exit_enabled_at: reg.exit_enabled_at,
                         exited_at: reg.exited_at,
@@ -356,13 +433,13 @@ function MyEvents() {
                         team_name: reg.team_name,
                         event_id: reg.event_id,
                         event_name: reg.event_name,
-                        event_venue: reg.event_category || reg.venue || 'TBA',
+                        event_venue: reg.venue || reg.event_category || 'TBA',
                         registration_fee: reg.registration_fee || reg.amount || 0,
                         payment_done: status === 'PAID',
                         payment_status: status,
                         registration_status: reg.registration_status,
-                        event_start_time: reg.event_start_time || reg.registration_date,
-                        event_end_time: reg.event_end_time,
+                        event_start_time: reg.start_time || reg.event_start_time || null,
+                        event_end_time: reg.end_time || reg.event_end_time || null,
                         payment_url: reg.payment_url,
                         is_leader: reg.is_leader !== undefined ? reg.is_leader : true,
                         team_members: reg.team_members || reg.members || [],
@@ -399,577 +476,56 @@ function MyEvents() {
         }
     }, [userData.state?.user?.anwesha_id, refreshKey])
 
+    const hasRegistrations = events.solo.length > 0 || events.team.length > 0
+
     return (
-        // <div>
-        //     {events.solo.length === 0 &&
-        //         events.team.length === 0 &&
-        //         passes.length === 0 ? (
-        //         <div>No events registered</div>
-        //     ) : null}
-        //     {passes.map((e, key) => {
-        //         return (
-        //             <div key={key} className={styles.pass}>
-        //                 <h2>{e.event_name}</h2>
-        //                 {e.payment_done ? (
-        //                     <div className={styles.verified_img}>
-        //                         <img src="assets/tick-green.svg" />
-        //                         Registration Complete
-        //                     </div>
-        //                 ) : (
-        //                     <a
-        //                         className={styles.payment_btn}
-        //                         href={e.payment_url}
-        //                     >
-        //                         Continue to payment{' '}
-        //                         <img src="/assets/right-arrow.svg" />
-        //                     </a>
-        //                 )}
-        //             </div>
-        //         )
-        //     })}
-        //     {events.solo ? (
-        //         events.solo.length !== 0 ? (
-        //             <div>
-        //                 <h1>Solo Events</h1>
-        //                 <div
-        //                     style={{
-        //                         display: 'flex',
-        //                         flexWrap: 'wrap',
-        //                         justifyContent: 'center',
-        //                     }}
-        //                 >
-        //                     {events.solo.map((e, key) => {
-        //                         if (e.event_tags !== '6') {
-        //                             return (
-        //                                 <div key={key} className={styles.event}>
-        //                                     <h2>{e.event_name}</h2>
-        //                                     <div className={styles.date_loc}>
-        //                                         <div
-        //                                             className={styles.date_row}
-        //                                         >
-        //                                             <img src="/assets/calendar-clock.svg" />
-        //                                             <div
-        //                                                 className={styles.date}
-        //                                             >
-        //                                                 <span
-        //                                                     className={
-        //                                                         styles.day
-        //                                                     }
-        //                                                 >
-        //                                                     {new Date(
-        //                                                         e.event_start_time
-        //                                                     ).toLocaleString(
-        //                                                         'default',
-        //                                                         {
-        //                                                             day: 'numeric',
-        //                                                         }
-        //                                                     )}
-        //                                                 </span>
-        //                                                 <span
-        //                                                     className={
-        //                                                         styles.month
-        //                                                     }
-        //                                                 >
-        //                                                     {new Date(
-        //                                                         e.event_start_time
-        //                                                     ).toLocaleString(
-        //                                                         'default',
-        //                                                         {
-        //                                                             month: 'short',
-        //                                                         }
-        //                                                     )}
-        //                                                 </span>
-        //                                             </div>
-        //                                             {e.event_end_time ? (
-        //                                                 <div>-</div>
-        //                                             ) : null}
-        //                                             {e.event_end_time ? (
-        //                                                 <div
-        //                                                     className={
-        //                                                         styles.date
-        //                                                     }
-        //                                                 >
-        //                                                     <span
-        //                                                         className={
-        //                                                             styles.day
-        //                                                         }
-        //                                                     >
-        //                                                         {new Date(
-        //                                                             e.event_end_time
-        //                                                         ).toLocaleString(
-        //                                                             'default',
-        //                                                             {
-        //                                                                 day: 'numeric',
-        //                                                             }
-        //                                                         )}
-        //                                                     </span>
-        //                                                     <span
-        //                                                         className={
-        //                                                             styles.month
-        //                                                         }
-        //                                                     >
-        //                                                         {new Date(
-        //                                                             e.event_end_time
-        //                                                         ).toLocaleString(
-        //                                                             'default',
-        //                                                             {
-        //                                                                 month: 'short',
-        //                                                             }
-        //                                                         )}
-        //                                                     </span>
-        //                                                 </div>
-        //                                             ) : null}
-        //                                         </div>
-        //                                         <div
-        //                                             className={styles.location}
-        //                                         >
-        //                                             <img src="/assets/location.svg" />
-        //                                             {e.event_venue}
-        //                                         </div>
-        //                                     </div>
-        //                                     {e.payment_done ? (
-        //                                         <div
-        //                                             className={
-        //                                                 styles.verified_img
-        //                                             }
-        //                                         >
-        //                                             <img src="assets/tick-green.svg" />
-        //                                             Registration Complete
-        //                                         </div>
-        //                                     ) : (
-        //                                         <a
-        //                                             className={
-        //                                                 styles.payment_btn
-        //                                             }
-        //                                             href={e.payment_url}
-        //                                         >
-        //                                             Continue to payment{' '}
-        //                                             <img src="/assets/right-arrow.svg" />
-        //                                         </a>
-        //                                     )}
-        //                                     {e.payment_url ? (
-        //                                         <a
-        //                                             className={
-        //                                                 styles.verified_img
-        //                                             }
-        //                                             href={e.payment_url}
-        //                                             target="_blank"
-        //                                             rel="noreferrer"
-        //                                         >
-        //                                             <img src="assets/WhatsApp.svg" />
-        //                                             Join Group
-        //                                         </a>
-        //                                     ) : null}
-        //                                 </div>
-        //                             )
-        //                         }
-        //                     })}
-        //                 </div>
-        //             </div>
-        //         ) : null
-        //     ) : null}
-        //     {events.team ? (
-        //         events.team.length !== 0 ? (
-        //             <div>
-        //                 <h1>Team Events</h1>
-        //                 <div
-        //                     style={{
-        //                         display: 'flex',
-        //                         flexWrap: 'wrap',
-        //                         justifyContent: 'center',
-        //                     }}
-        //                 >
-        //                     {events.team.map((e, key) => {
-        //                         return (
-        //                             e.payment_done &&
-        //                             <div key={key} className={styles.event}>
-        //                                 <h2>{e.event_name}</h2>
-        //                                 <div className={styles.date_loc}>
-        //                                     <div className={styles.date_row}>
-        //                                         <img src="/assets/calendar-clock.svg" />
-        //                                         <div className={styles.date}>
-        //                                             <span
-        //                                                 className={styles.day}
-        //                                             >
-        //                                                 {new Date(
-        //                                                     e.event_start_time
-        //                                                 ).toLocaleString(
-        //                                                     'default',
-        //                                                     { day: 'numeric' }
-        //                                                 )}
-        //                                             </span>
-        //                                             <span
-        //                                                 className={styles.month}
-        //                                             >
-        //                                                 {new Date(
-        //                                                     e.event_start_time
-        //                                                 ).toLocaleString(
-        //                                                     'default',
-        //                                                     { month: 'short' }
-        //                                                 )}
-        //                                             </span>
-        //                                         </div>
-        //                                         {e.event_end_time ? (
-        //                                             <div>-</div>
-        //                                         ) : null}
-        //                                         {e.event_end_time ? (
-        //                                             <div
-        //                                                 className={styles.date}
-        //                                             >
-        //                                                 <span
-        //                                                     className={
-        //                                                         styles.day
-        //                                                     }
-        //                                                 >
-        //                                                     {new Date(
-        //                                                         e.event_end_time
-        //                                                     ).toLocaleString(
-        //                                                         'default',
-        //                                                         {
-        //                                                             day: 'numeric',
-        //                                                         }
-        //                                                     )}
-        //                                                 </span>
-        //                                                 <span
-        //                                                     className={
-        //                                                         styles.month
-        //                                                     }
-        //                                                 >
-        //                                                     {new Date(
-        //                                                         e.event_end_time
-        //                                                     ).toLocaleString(
-        //                                                         'default',
-        //                                                         {
-        //                                                             month: 'short',
-        //                                                         }
-        //                                                     )}
-        //                                                 </span>
-        //                                             </div>
-        //                                         ) : null}
-        //                                     </div>
-        //                                     <div className={styles.location}>
-        //                                         <img src="/assets/location.svg" />
-        //                                         {e.event_venue}
-        //                                     </div>
-        //                                 </div>
-        //                                 <div className={styles.team_details}>
-        //                                     <h3>{e.team_name}</h3>
-        //                                     <h4>
-        //                                         Leader:{' '}
-        //                                         <strong>{e.team_lead}</strong>
-        //                                     </h4>
-        //                                     <div className={styles.members}>
-        //                                         {e.team_members.map(
-        //                                             (mem, key) => {
-        //                                                 return (
-        //                                                     <div key={key}>
-        //                                                         {mem}
-        //                                                     </div>
-        //                                                 )
-        //                                             }
-        //                                         )}
-        //                                     </div>
-        //                                 </div>
-        //                                 {e.payment_done ? (
-        //                                     <div
-        //                                         className={styles.verified_img}
-        //                                     >
-        //                                         <img src="assets/tick-green.svg" />
-        //                                         Registration Complete
-        //                                     </div>
-        //                                 ) : (
-        //                                     <a
-        //                                         className={styles.payment_btn}
-        //                                         href={e.payment_url}
-        //                                     >
-        //                                         Continue to payment{' '}
-        //                                         <img src="/assets/right-arrow.svg" />
-        //                                     </a>
-        //                                 )}
-        //                                 {e.payment_url ? (
-        //                                     <a
-        //                                         className={styles.verified_img}
-        //                                         href={e.payment_url}
-        //                                         target="_blank"
-        //                                         rel="noreferrer"
-        //                                     >
-        //                                         <img src="assets/WhatsApp.svg" />
-        //                                         Join Group
-        //                                     </a>
-        //                                 ) : null}
-        //                             </div>
+        <div className={ev.wrapper}>
+            <div className={ev.header}>
+                <h2 className={ev.heading}>My events</h2>
+                {hasRegistrations && (
+                    <span className={ev.count}>
+                        {events.solo.length + events.team.length} registration{events.solo.length + events.team.length === 1 ? '' : 's'}
+                    </span>
+                )}
+            </div>
 
-        //                         )
-        //                     })}
-        //                 </div>
-        //             </div>
-        //         ) : null
-        //     ) : null}
-        // </div>
-
-        <div className={styles.eventsInfo}>
             {loadingEvents ? (
                 <Loader label="Loading your events…" />
-            ) : !events.solo ||
-            (events.solo.length === 0 &&
-                events.team.length === 0 &&
-                passes.length === 0) ? (
-                <div>No events registered</div>
-            ) : null}
-            {passes.length !== 0 ? (
-                <div>
-                    <div className={styles.eventsHeading}>Passes</div>
-                    {passes.map((e, key) => {
-                        return (
-                            <div key={key} className={styles.pass}>
-                                <img src={'/pics/pass.png'}></img>
-                                <div className={styles.passDetail}>
-                                    <div
-                                        style={{
-                                            fontFamily: 'Laila-Bold',
-                                        }}
-                                    >
-                                        {e.event_name}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
+            ) : !hasRegistrations && passes.length === 0 ? (
+                <div className={ev.empty}>
+                    <CalendarDays size={28} aria-hidden="true" />
+                    <p>You have not registered for any events yet.</p>
+                    <Link href="/events" className={ev.primaryAction}>Browse events</Link>
                 </div>
-            ) : null}
-            {(events.solo || events.team) &&
-            (events.solo.length !== 0 || events.team.length !== 0) ? (
-                <div>
-                    <div className={styles.eventsHeading}>
-                        Registered Events
-                    </div>
-                    {events.solo.map((e, key) => {
-                        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase();
-                        return (
-                            <div key={key} className={styles.pass}>
-                                <img src={'/pics/pass.png'}></img>
-                                <div className={styles.passDetail}>
-                                    <div
-                                        style={{
-                                            fontFamily: 'Laila-Bold',
-                                        }}
-                                    >
-                                        {e.event_name}
+            ) : (
+                <>
+                    {passes.length > 0 && (
+                        <ul className={ev.list}>
+                            {passes.map((pass) => (
+                                <li key={pass.event_name} className={ev.card}>
+                                    <div className={ev.cardHead}>
+                                        <div className={ev.titleBlock}>
+                                            <span className={ev.kind}>Pass</span>
+                                            <h3 className={ev.eventName}>{pass.event_name}</h3>
+                                        </div>
+                                        <span className={`${ev.badge} ${ev.success}`}>Active</span>
                                     </div>
-
-                                    {/* Payment status badge / button */}
-                                    {(status === 'PAID' || status === 'CONFIRMED' || status === 'SUCCESS') && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0a7c42', fontWeight: '600', marginTop: '8px' }}>
-                                            <span style={{ fontSize: '18px' }}>✓</span>
-                                            <span>Paid Successful</span>
-                                        </div>
-                                    )}
-
-                                    {(status === 'CANCELLED' || status === 'CANCELED') && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e67e22', fontWeight: '600', marginTop: '8px' }}>
-                                            <span>✕</span>
-                                            <span>Payment Cancelled</span>
-                                        </div>
-                                    )}
-
-                                    {status === 'FAILED' && (
-                                        <div style={{ marginTop: '8px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff3e3e', fontWeight: '600', marginBottom: '8px' }}>
-                                                <span>⚠</span>
-                                                <span>Payment Failed</span>
-                                            </div>
-                                            <button 
-                                                className={styles.payment_btn}
-                                                disabled={payingId === e.event_id}
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    initiatePayment("SOLO_EVENT", e.event_id);
-                                                }}
-                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
-                                            >
-                                                <ButtonLoader loading={payingId === e.event_id} label="Processing">
-                                                    Retry Payment
-                                                </ButtonLoader>
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {status === 'PENDING' && (
-                                        <div style={{ marginTop: '8px' }}>
-                                            <div style={{ color: '#e67e22', fontWeight: '600', marginBottom: '8px' }}>
-                                                Payment Pending
-                                            </div>
-                                            <button 
-                                                className={styles.payment_btn}
-                                                disabled={payingId === e.event_id}
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    initiatePayment("SOLO_EVENT", e.event_id);
-                                                }}
-                                                style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
-                                            >
-                                                <ButtonLoader loading={payingId === e.event_id} label="Processing">
-                                                    Pay Now
-                                                </ButtonLoader>
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {renderTicketControls(e)}
-                                    {renderExitControls(e)}
-                                </div>
-                            </div>
-                        )
-                    })}
-                    {events.team.map((e, key) => {
-                        const status = (e.payment_status || (e.payment_done ? 'PAID' : 'PENDING')).toUpperCase();
-                        return (
-                            <div key={key} className={styles.pass}>
-                                <img src={'/pics/pass.png'}></img>
-                                <div className={styles.passDetail}>
-                                    <div
-                                        style={{
-                                            fontFamily: 'Laila-Bold',
-                                        }}
-                                    >
-                                        {e.event_name}
-                                    </div>
-                                    <div style={{ marginTop: '4px', color: '#ddd' }}>
-                                        Team: <strong>{e.team_name}</strong>
-                                    </div>
-                                    {e.team_members && e.team_members.length > 0 && (
-                                        <div style={{ fontSize: '0.9rem', marginTop: '8px', color: '#ccc' }}>
-                                            <strong>Team Members:</strong>
-                                            <div style={{ marginTop: '4px', paddingLeft: '10px' }}>
-                                                {e.team_members.map((member, idx) => (
-                                                    <div key={idx}>
-                                                        {member.anwesha_id || member}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Payment status badge / button */}
-                                    {(status === 'PAID' || status === 'CONFIRMED' || status === 'SUCCESS') && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0a7c42', fontWeight: '600', marginTop: '8px' }}>
-                                            <span style={{ fontSize: '18px' }}>✓</span>
-                                            <span>Paid Successful</span>
-                                        </div>
-                                    )}
-
-                                    {(status === 'CANCELLED' || status === 'CANCELED') && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e67e22', fontWeight: '600', marginTop: '8px' }}>
-                                            <span>✕</span>
-                                            <span>Payment Cancelled</span>
-                                        </div>
-                                    )}
-
-                                    {status === 'FAILED' && (
-                                        <div style={{ marginTop: '8px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff3e3e', fontWeight: '600', marginBottom: '8px' }}>
-                                                <span>⚠</span>
-                                                <span>Payment Failed</span>
-                                            </div>
-                                            <button 
-                                                className={styles.payment_btn}
-                                                disabled={payingId === (e.team_id || e.event_id)}
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
-                                                }}
-                                                style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
-                                            >
-                                                <ButtonLoader loading={payingId === (e.team_id || e.event_id)} label="Processing">
-                                                    Retry Payment
-                                                </ButtonLoader>
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {status === 'PENDING' && (
-                                        <div style={{ marginTop: '8px' }}>
-                                            <div style={{ color: '#e67e22', fontWeight: '600', marginBottom: '8px' }}>
-                                                Payment Pending
-                                            </div>
-                                            <button 
-                                                className={styles.payment_btn}
-                                                disabled={payingId === (e.team_id || e.event_id)}
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
-                                                }}
-                                                style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
-                                            >
-                                                <ButtonLoader loading={payingId === (e.team_id || e.event_id)} label="Processing">
-                                                    Pay Now
-                                                </ButtonLoader>
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {renderTicketControls(e)}
-                                    {renderExitControls(e)}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            ) : null}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {hasRegistrations && (
+                        <ul className={ev.list}>
+                            {events.solo.map((e) => renderRegistration(e, 'solo'))}
+                            {events.team.map((e) => renderRegistration(e, 'team'))}
+                        </ul>
+                    )}
+                </>
+            )}
 
             {exitPass && (
                 <ExitStatusModal pass={exitPass} clockOffset={clockOffset} onClose={closeExitPass} />
             )}
-
-            {/* <div>
-                <div className={styles.eventsHeading}>Event Passes</div>
-                <div className={styles.pass}>
-                    <img src={'/pics/pass.png'}></img>
-                    <div className={styles.passDetail}>
-                        <div
-                            style={{
-                                fontFamily: 'Laila-Bold',
-                            }}
-                        >
-                            Pronite Pass
-                        </div>
-                        <div>18 March 2024</div>
-                        <div>09:00</div>
-                    </div>
-                </div>
-            </div> */}
-
-            {/* <div>
-                <div className={styles.eventsHeading}>Registered Events</div>
-                <div className={styles.pass}>
-                    <img src={'/pics/pass.png'}></img>
-                    <div className={styles.passDetail}>
-                        <div
-                            style={{
-                                fontFamily: 'Laila-Bold',
-                            }}
-                        >
-                            Pronite Pass
-                        </div>
-                        <div>18 March 2024</div>
-                        <div>09:00</div>
-                    </div>
-                </div>
-                <div className={styles.pass}>
-                    <img src={'/pics/pass.png'}></img>
-                    <div className={styles.passDetail}>
-                        <div
-                            style={{
-                                fontFamily: 'Laila-Bold',
-                            }}
-                        >
-                            Pronite Pass
-                        </div>
-                        <div>18 March 2024</div>
-                        <div>09:00</div>
-                    </div>
-                </div>
-            </div> */}
         </div>
     )
 }

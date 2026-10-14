@@ -42,6 +42,8 @@ const timeLeft = (deadline, now) => {
 
 const sortByNewest = (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
 
+const isVisible = (request) => ACTIVE_STATUSES.includes(request.status) || Boolean(request.refund_required)
+
 export const hasActiveAccommodation = (requests) =>
     requests.some((request) => ACTIVE_STATUSES.includes(request.status))
 
@@ -64,7 +66,7 @@ export default function MyAccommodation({ getAuthHeaders, highlightId, refreshKe
             const res = await fetch(`${host}/accommodation/my`, { headers: headers() })
             const data = await res.json().catch(() => ({}))
             const list = Array.isArray(data.requests) ? [...data.requests].sort(sortByNewest) : []
-            setRequests(list)
+            setRequests(list.filter(isVisible))
             onLoadedRef.current?.(list)
         } catch (err) {
             console.error('Failed to load accommodation requests', err)
@@ -129,11 +131,13 @@ export default function MyAccommodation({ getAuthHeaders, highlightId, refreshKe
             <h2 id="my-accommodation-title" className={styles.heading}>My accommodation</h2>
             <ul className={styles.list}>
                 {requests.map((request) => {
-                    const copy = STATUS_COPY[request.status] || { label: request.status, tone: 'muted' }
+                    const copy = request.refund_required && request.status !== 'CONFIRMED'
+                        ? { label: 'Refund in progress', tone: 'action' }
+                        : STATUS_COPY[request.status] || { label: request.status, tone: 'muted' }
                     const awaitingPayment = request.status === 'ALLOTTED_PENDING_PAYMENT'
                     const deadlinePassed = awaitingPayment && request.payment_deadline && new Date(request.payment_deadline).getTime() <= now
                     const canCancel = (request.status === 'REQUESTED' || awaitingPayment) && request.payment_status !== 'PAID'
-                    const room = request.room
+                    const room = request.status === 'CONFIRMED' ? request.room : null
 
                     return (
                         <li
@@ -184,11 +188,8 @@ export default function MyAccommodation({ getAuthHeaders, highlightId, refreshKe
                             {request.status === 'CONFIRMED' && (
                                 <p className={styles.note}>Paid ₹{request.amount}. Show the confirmation email and a photo ID for every guest at the Accommodation Desk.</p>
                             )}
-                            {request.status === 'CANCELLED_DUE_TO_NON_PAYMENT' && (
-                                <p className={styles.note}>The room was released because payment was not completed in time. You can submit a new request below.</p>
-                            )}
-                            {request.status === 'REJECTED' && request.rejection_reason && (
-                                <p className={styles.note}>Reason: {request.rejection_reason}</p>
+                            {awaitingPayment && (
+                                <p className={styles.note}>A room has been allotted to you. Complete the payment before the deadline to confirm it; the room number and location appear here once payment is done.</p>
                             )}
                             {request.refund_required && (
                                 <p className={styles.warning}>Your payment arrived after the room was released. Our team will process a refund; write to dev.anweshaiitp@gmail.com with {request.id} if you need help.</p>

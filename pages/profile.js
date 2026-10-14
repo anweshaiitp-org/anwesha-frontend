@@ -3,6 +3,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import Details from '../components/Profile/details'
 import MyEvents from '../components/Profile/myEvents'
 import IdSubmissionCard from '../components/Profile/IdSubmissionCard'
+import MyAccommodation from '../components/Accommodation/MyAccommodation'
 import MyMerch from '../components/Profile/myMerch'
 import Head from 'next/head'
 import styles from '../styles/profile.module.css'
@@ -13,6 +14,9 @@ import { motion, wrap } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Link from 'next/link'
+import Loader, { ButtonLoader } from '../components/Loader'
+import { BadgeCheck, Building2, Cake, Camera, Check, Copy, ExternalLink, KeyRound, Mail, Pencil, Phone, ShieldAlert, ShoppingBag, User } from 'lucide-react'
+import ui from '../styles/profile-page.module.css'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -52,6 +56,7 @@ function Profile() {
     const [editFormData, setEditFormData] = useState({})
     const [uploadingPhoto, setUploadingPhoto] = useState(false)
     const [profileSaving, setProfileSaving] = useState(false)
+    const [copied, setCopied] = useState(false)
 
     useEffect(() => {
         if (showEditProfile && profDetails) {
@@ -280,8 +285,26 @@ function Profile() {
             })
     }
 
+    const idVerified = profDetails.id_card_status === 'VERIFIED'
+    const collegeName = profDetails.collage_name || profDetails.college_name || ''
+
+    const copyAnweshaId = async () => {
+        try {
+            await navigator.clipboard.writeText(profDetails.anwesha_id)
+            setCopied(true)
+            toast.success('Anwesha ID copied', { autoClose: 2000 })
+            setTimeout(() => setCopied(false), 2000)
+        } catch {
+            toast.error('Could not copy. Please copy it manually.')
+        }
+    }
+
     if (!userData?.state?.user) {
-        return null
+        return (
+            <div className={ui.page}>
+                <Loader label="Loading your profile…" fullPage />
+            </div>
+        )
     }
 
 
@@ -304,267 +327,131 @@ function Profile() {
                 pauseOnHover
                 theme="light"
             />
-            <div className={styles.mainContainer}>
-                <div className={styles.welcome}>WELCOME BACK!</div>
-
-                <div className={styles.subContainer}>
-                    <IdSubmissionCard
-                        status={profDetails.id_card_status}
-                        getAuthHeaders={userData?.getAuthHeaders}
-                    />
-                    {/* Myntra Registration Notice */}
-                    {!myntraLoading && myntraStatus && myntraStatus.is_myntra_registered === false && (
-                        <div style={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                            border: '1px solid #F2BF51',
-                            borderRadius: '8px',
-                            padding: '20px',
-                            margin: '20px auto',
-                            maxWidth: '800px',
-                            textAlign: 'center',
-                            fontFamily: "'Cormorant Garamond', serif"
-                        }}>
-                            <h3 style={{
-                                color: '#F2BF51',
-                                marginBottom: '10px',
-                                fontSize: '24px',
-                                fontWeight: 'bold',
-                                fontFamily: "'Cormorant Garamond', serif"
-                            }}>
-                                âš ï¸ Myntra Registration Required for Pronite Entry
-                            </h3>
-                            <p style={{
-                                color: '#ffffff',
-                                marginBottom: '15px',
-                                fontSize: '20px',
-                                fontFamily: "'Cormorant Garamond', serif"
-                            }}>
-                                You have not registered on Myntra yet. This is mandatory for pronite entry.
-                            </p>
-                            <a
-                                href="https://myntra.onelink.me/dNYC/psb0vkzt?af_qr=true"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                    display: 'inline-block',
-                                    backgroundColor: 'transparent',
-                                    color: '#F2BF51',
-                                    padding: '10px 24px',
-                                    borderRadius: '5px',
-                                    textDecoration: 'none',
-                                    fontWeight: 'bold',
-                                    fontSize: '18px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s',
-                                    fontFamily: "'Cormorant Garamond', serif",
-                                    border: '1px solid #F2BF51'
-                                }}
-                                onMouseOver={(e) => {
-                                    e.target.style.backgroundColor = '#F2BF51';
-                                    e.target.style.color = '#000';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.target.style.backgroundColor = 'transparent';
-                                    e.target.style.color = '#F2BF51';
-                                }}
-                            >
-                                Register on Myntra App
-                            </a>
+            <div className={ui.page}>
+                <div className={ui.shell}>
+                    <section className={`${ui.panel} ${ui.hero}`} aria-label="Your profile">
+                        <div className={ui.avatarWrap}>
+                            <img
+                                src={profDetails.profile_photo_url || '/home/mascott.png'}
+                                alt={`${profDetails.full_name || 'Your'} profile photo`}
+                                className={ui.avatar}
+                            />
+                            {!idVerified && (
+                                <>
+                                    <input
+                                        type="file"
+                                        id="photo-upload"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={handlePhotoUpload}
+                                        disabled={uploadingPhoto}
+                                    />
+                                    <label htmlFor="photo-upload" className={ui.avatarUpload} title="Change profile photo">
+                                        <ButtonLoader loading={uploadingPhoto} label="">
+                                            <Camera size={17} aria-hidden="true" />
+                                        </ButtonLoader>
+                                        <span className="sr-only">Change profile photo</span>
+                                    </label>
+                                </>
+                            )}
                         </div>
-                    )}
-                    <div className={styles.idandqr}>
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <div className={styles.userImage}>
-                                <img
-                                    src={'/home/circle.png'}
-                                    width={180}
-                                    height={180}
-                                    alt="userImage"
-                                    className={styles.userCircleFrame}
-                                />
-                                <img
-                                    src={profDetails.profile_photo_url || '/home/mascott.png'}
-                                    width={150}
-                                    height={150}
-                                    alt="userImage"
-                                    className={styles.userAvatar}
-                                />
-                                {profDetails.id_card_status !== 'VERIFIED' && (
-                                    <>
-                                        <input 
-                                            type="file" 
-                                            id="photo-upload" 
-                                            accept="image/*" 
-                                            style={{ display: 'none' }} 
-                                            onChange={handlePhotoUpload}
-                                            disabled={uploadingPhoto}
-                                        />
-                                        <label htmlFor="photo-upload" className={styles.photoUploadLabel} title="Upload Profile Picture">
-                                            {uploadingPhoto ? (
-                                                '⏳'
-                                            ) : (
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                                    <circle cx="12" cy="13" r="4" stroke="#444" strokeWidth="2"/>
-                                                </svg>
-                                            )}
-                                        </label>
-                                    </>
-                                )}
-                            </div>
-                            <div>
-                                <div>
-                                    <h1
-                                        className={styles.anwesha_username}
-                                        style={{ fontWeight: 'normal', display: 'inline' }}
-                                    >
-                                        {profDetails.full_name}
-                                    </h1><button
-                                        onClick={() => {
-                                            if (profDetails.id_card_status === 'VERIFIED') {
-                                                toast.error('Profile update is blocked as ID card is VERIFIED.')
-                                                return
-                                            }
-                                            setShowEditProfile(true)
-                                        }}
-                                        style={{ display: 'inline-flex', verticalAlign: 'middle', paddingLeft: '10px', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', bottom: '8px' }}
-                                    >
-                                        <motion.div
-                                            style={{ cursor: 'pointer' }}
-                                            whileTap={{ scale: 0.8 }}
-                                        >
-                                            <img
-                                                src="/edit.svg"
-                                                width={20}
-                                                height={20}
-                                                alt="edit"
-                                            />
-                                        </motion.div>
-                                    </button>
-                                </div>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                    }}
-                                >
-                                    <h1
-                                        className={styles.anwesha_id}
-                                        style={{ fontWeight: 'normal' }}
-                                    >
-                                        {profDetails.anwesha_id}
-                                    </h1>
+
+                        <div className={ui.identity}>
+                            <p className={ui.greeting}>Welcome back,</p>
+                            <h1 className={ui.name}>{profDetails.full_name}</h1>
+                            <div className={ui.metaRow}>
+                                <span className={ui.idPill}>
+                                    {profDetails.anwesha_id}
                                     <button
-                                        className={styles.copy}
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(
-                                                profDetails.anwesha_id
-                                            )
-                                            toast.success(
-                                                'Copied to clipboard',
-                                                {
-                                                    position: 'top-right',
-                                                    autoClose: 3000,
-                                                    hideProgressBar: false,
-                                                    closeOnClick: true,
-                                                    pauseOnHover: true,
-                                                    draggable: true,
-                                                    progress: undefined,
-                                                    theme: 'light',
-                                                }
-                                            )
-                                        }}
+                                        type="button"
+                                        className={ui.copyButton}
+                                        onClick={copyAnweshaId}
+                                        aria-label="Copy Anwesha ID"
                                     >
-                                        <motion.div
-                                            style={{ cursor: 'pointer' }}
-                                            whileTap={{ scale: 0.8 }}
-                                        >
-                                            <Image
-                                                src="/copy.svg"
-                                                width={20}
-                                                height={20}
-                                                alt="copy"
-                                            />
-                                        </motion.div>
+                                        {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                                     </button>
-                                </div>
-                                <div className={styles.changePasswordWrapper}>
-                                    <Link href="/change-password" style={{ textDecoration: 'none' }}>
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className={styles.changePasswordBtn}
-                                        >
-                                            Change Password
-                                        </motion.button>
-                                    </Link>
-                                </div>
+                                </span>
+                                <span className={`${ui.statusChip} ${idVerified ? ui.chipVerified : ui.chipPending}`}>
+                                    {idVerified ? <BadgeCheck size={15} aria-hidden="true" /> : <ShieldAlert size={15} aria-hidden="true" />}
+                                    {idVerified ? 'ID verified' : 'ID not verified'}
+                                </span>
                             </div>
-                        </div>
+                            {collegeName && (
+                                <p className={ui.college}>
+                                    <Building2 size={16} aria-hidden="true" />
+                                    {collegeName}
+                                </p>
+                            )}
                         </div>
 
-                    {/* <h1 className={styles.anwesha_id}>{profDetails.anwesha_id}</h1> */}
-                    <div className={styles.userDetails}>
-                        <div>
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Mail ID
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    {profDetails.email_id}
-                                </h1>
-                            </div>
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Mobile Number
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    {profDetails.phone_number}
-                                </h1>
-                            </div>
+                        <div className={ui.heroActions}>
+                            <button
+                                type="button"
+                                className={ui.primaryButton}
+                                onClick={() => setShowEditProfile(true)}
+                                disabled={idVerified}
+                                title={idVerified ? 'Profile is locked after ID verification' : undefined}
+                            >
+                                <Pencil size={16} aria-hidden="true" />
+                                Edit profile
+                            </button>
+                            <Link href="/change-password" className={ui.secondaryButton}>
+                                <KeyRound size={16} aria-hidden="true" />
+                                Change password
+                            </Link>
+                            {idVerified && <p className={ui.lockNote}>Details are locked after ID verification.</p>}
                         </div>
-                        <div>
-                            {/* <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Gender
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    Male
-                                </h1>
-                            </div> */}
+                    </section>
 
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Gender
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    {profDetails.gender || 'Not specified'}
-                                </h1>
-                            </div>
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    DOB
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    {profDetails.dob || 'Not specified'}
-                                </h1>
-                            </div>
-                            <div>
-                                <h1 className={styles.userDetailsHeading}>
-                                    Institute/Organization
-                                </h1>
-                                <h1 className={styles.userDetailsContent}>
-                                    {profDetails.collage_name || profDetails.college_name || 'Not specified'}
-                                </h1>
-                            </div>
-                        </div>
+                    <div className={ui.notices}>
+                        <IdSubmissionCard
+                            status={profDetails.id_card_status}
+                            getAuthHeaders={userData?.getAuthHeaders}
+                        />
+                        {!myntraLoading && myntraStatus && myntraStatus.is_myntra_registered === false && (
+                            <section className={ui.notice}>
+                                <span className={ui.noticeIcon} aria-hidden="true">
+                                    <ShoppingBag size={22} />
+                                </span>
+                                <div className={ui.noticeBody}>
+                                    <h3>Register on Myntra for Pronite entry</h3>
+                                    <p>Myntra registration is mandatory for Pronite entry and you have not registered yet.</p>
+                                </div>
+                                <a
+                                    href="https://myntra.onelink.me/dNYC/psb0vkzt?af_qr=true"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={ui.primaryButton}
+                                >
+                                    Open Myntra app
+                                    <ExternalLink size={15} aria-hidden="true" />
+                                </a>
+                            </section>
+                        )}
                     </div>
+
+                    <section className={ui.panel} aria-labelledby="profile-details-title">
+                        <h2 id="profile-details-title" className={ui.sectionTitle}>Personal details</h2>
+                        <dl className={ui.details}>
+                            {[
+                                { label: 'Email', value: profDetails.email_id, Icon: Mail },
+                                { label: 'Mobile number', value: profDetails.phone_number, Icon: Phone },
+                                { label: 'Gender', value: profDetails.gender, Icon: User },
+                                { label: 'Date of birth', value: profDetails.dob, Icon: Cake },
+                                { label: 'Institute / organisation', value: collegeName, Icon: Building2 },
+                            ].map(({ label, value, Icon }) => (
+                                <div key={label} className={ui.detail}>
+                                    <span className={ui.detailIcon} aria-hidden="true">
+                                        <Icon size={18} />
+                                    </span>
+                                    <div>
+                                        <dt>{label}</dt>
+                                        <dd>{value || 'Not specified'}</dd>
+                                    </div>
+                                </div>
+                            ))}
+                        </dl>
+                    </section>
                                         {/* Modals */}
                     {showEditProfile && (
                         <div
@@ -978,68 +865,13 @@ function Profile() {
                             </motion.div>
                         </div>
                     )}
-                    <MyEvents />
-                    {/* <h2
-                        style={{
-                            color: 'white',
-                            fontWeight: 'normal',
-                            textAlign: 'center',
-                            letterSpacing: '1px',
-                        }}
-                    >
-                        To seek accomodation Fill this &nbsp;
-                        <a
-                            href="https://forms.gle/WjTuyC2gR8mHYGzA6"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ fontWeight: 'normal', color: 'skyblue' }}
-                        >
-                            FORM
-                        </a>
-                    </h2> */}
-
-                    {/* <Tabs className={styles.tabs}>
-                        <TabList
-                            className={styles.tabList}
-                            selectedIndex={tabIndex}
-                            onSelect={(index) => setTabIndex(index)}
-                        >
-                            <Tab
-                                className={styles.tab}
-                                selectedClassName={styles.tabActive}
-                            >
-                                DETAILS
-                            </Tab>
-                            <Tab
-                                className={styles.tab}
-                                selectedClassName={styles.tabActive}
-                            >
-                                MY EVENTS
-                            </Tab>
-                            <Tab className={styles.tab}>MY MERCHANDISE</Tab>
-                        </TabList>
-
-                        <TabPanel className={styles.tabPanel}>
-                            <Details />
-                        </TabPanel>
-                        <TabPanel className={styles.tabPanel}>
-                                                <MyEvents />
-                        </TabPanel>
-                        <TabPanel className={styles.tabPanel}>
-                            <MyMerch />
-                        </TabPanel>
-                    </Tabs> */}
-
-                    {/* design for the bottom pngs */}
-                    <div className={styles.bottomDesign}>
-                        <img
-                            src={'/profile/bottom.png'}
-                            width={800}
-                            height={350}
-                            alt="userImage"
-                        />
+                    <div className={ui.accommodation}>
+                        <MyAccommodation getAuthHeaders={userData?.getAuthHeaders} />
                     </div>
 
+                    <section className={`${ui.panel} ${ui.eventsPanel}`} aria-label="My events">
+                        <MyEvents />
+                    </section>
                 </div>
             </div>
         </>
