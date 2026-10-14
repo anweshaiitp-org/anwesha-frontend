@@ -42,6 +42,7 @@ const PrivateRoute = ({ children }) => {
             '/event-registration',
             '/event-registrations',
             '/submit-id',
+            '/accommodation'
         ]
         const isProtectedRoute = protectedPrefixes.some((route) =>
             router.pathname.startsWith(route)

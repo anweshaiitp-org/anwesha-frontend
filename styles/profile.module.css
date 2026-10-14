@@ -1,5 +1,22 @@
 @import url(https://db.onlinewebfonts.com/c/16ff7a691ffa5aae54301d500d494a5b?family=Anavio+Small+Capitals+W01+Bold);
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Laila:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.cdnfonts.com/css/wasted-vindey');
+
+@font-face {
+    font-family: 'Wasted Vindey';
+    src: url('/font/wasted-vindey.regular.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Wasted Vindey';
+    src: url('/font/wasted-vindey.regular.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
 
 @font-face {
     font-family: 'BroadwayShadow';
@@ -105,16 +122,58 @@
 
 .userImage {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
 }
 
-.userImage img {
+.userCircleFrame {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.userAvatar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 82%;
+    height: 82%;
     border-radius: 50%;
+    object-fit: cover;
+    z-index: 10;
+}
+
+.photoUploadLabel {
+    position: absolute;
+    bottom: 6px;
+    right: 12px;
+    background: #ffffff;
+    color: #000000;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 20;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    transition: transform 0.2s, background-color 0.2s;
+    user-select: none;
+}
+
+.photoUploadLabel:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
 }
 
 .userDetails {
@@ -138,6 +197,7 @@
     font-size: 20px;
     font-family: 'Cormorant Garamond', serif;
     text-wrap: wrap;
+    margin: 0;
 }
 
 .userDetailsContent {
@@ -146,6 +206,18 @@
     font-family: 'Cormorant Garamond', serif;
     line-height: 24px;
     text-wrap: wrap;
+    margin: 0;
+}
+
+.userDetails > div > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.userDetailsHeading::after {
+    content: ':';
 }
 
 .tabs {
@@ -168,6 +240,46 @@
     background-color: rgba(0, 0, 0, 0);
     border: none;
     padding-left: 8px;
+}
+
+.editProfileButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    background: transparent;
+    border: none;
+    padding: 0 0 0 8px;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.changePasswordWrapper {
+    margin-top: 12px;
+}
+
+.changePasswordBtn {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    padding: 7px 18px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.changePasswordBtn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: #6833ff;
+    color: #ffffff;
 }
 
 .tabList {
@@ -372,9 +484,13 @@
 
     .userDetails {
         flex-direction: column;
-        gap: 20px;
-        padding: 15px 10px;
+        gap: 6px;
+        padding: 12px 10px;
         text-align: center;
+    }
+
+    .userDetails > div > div {
+        margin-bottom: 4px;
     }
 
     .anwesha_username {
@@ -409,8 +525,25 @@
     }
 
     .userImage {
-        width: 90px;
-        height: 90px;
+        width: 120px;
+        height: 120px;
+    }
+
+    .photoUploadLabel {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+        bottom: 4px;
+        right: 8px;
+    }
+
+    .changePasswordWrapper {
+        margin-top: 8px;
+    }
+
+    .changePasswordBtn {
+        font-size: 12px;
+        padding: 4px 10px;
     }
 }
 
@@ -434,8 +567,32 @@
     }
 
     .userImage {
-        width: 75px;
-        height: 75px;
+        width: 100px;
+        height: 100px;
+    }
+
+    .photoUploadLabel {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+        bottom: 2px;
+        right: 4px;
+    }
+
+    .changePasswordWrapper {
+        margin-top: 6px;
+    }
+
+    .changePasswordBtn {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .saveChangesBtn {
+        font-size: 16px;
+        padding: 8px 16px;
+        height: 42px;
     }
 
     .subContainer {
@@ -448,8 +605,12 @@
 
     .userDetails {
         flex-direction: column;
-        gap: 15px;
-        padding: 10px 5px;
+        gap: 4px;
+        padding: 8px 5px;
+    }
+
+    .userDetails > div > div {
+        margin-bottom: 2px;
     }
 
     .tabs {
@@ -513,8 +674,16 @@
     }
 
     .userImage {
-        width: 65px;
-        height: 65px;
+        width: 85px;
+        height: 85px;
+    }
+
+    .photoUploadLabel {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+        bottom: 1px;
+        right: 2px;
     }
 }
 
@@ -538,4 +707,38 @@
 
     object-fit: cover;
     object-position: center bottom;
+}
+
+.saveChangesBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    height: 48px;
+
+    /* Colors and border matching 'Get Passes' button */
+    background-color: #370f58;
+    color: #b8a947;
+    border: 1.5px solid #370461;
+    box-shadow: 0px 0px 12px rgba(15, 3, 24, 0.6);
+
+    /* Typography */
+    font-family: 'Wasted Vindey', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.1rem;
+
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.saveChangesBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 0px 18px rgba(55, 15, 88, 0.8), 0px 0px 10px rgba(184, 169, 71, 0.4);
+}
+
+.saveChangesBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
 }

@@ -1,94 +1,384 @@
-.page {
-    min-height: 100vh;
-    padding: 120px 6vw 70px;
-    color: #f8f0df;
-    background: radial-gradient(circle at top, #39205a 0, #130e29 48%, #080713 100%);
-}
-
-.backLink {
-    display: inline-block;
-    margin-bottom: 28px;
-    color: #efc867;
-    text-decoration: none;
-}
-
-.card {
-    display: grid;
-    grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-    max-width: 1180px;
-    margin: 0 auto;
-    overflow: hidden;
-    border: 1px solid rgba(239, 200, 103, .35);
-    border-radius: 24px;
-    background: rgba(17, 13, 38, .78);
-    box-shadow: 0 24px 70px rgba(0, 0, 0, .38);
-}
-
-.posterWrap { min-height: 520px; background: #171326; }
-.poster { width: 100%; height: 100%; min-height: 520px; object-fit: cover; display: block; }
-.content { padding: 56px clamp(28px, 5vw, 72px); }
-.kicker { color: #efc867; letter-spacing: .22em; font-size: .75rem; }
-.content h1 { margin: 12px 0 4px; font-size: clamp(2.4rem, 5vw, 5rem); line-height: .95; }
-.subtitle { color: #d9bde4; font-size: 1.2rem; }
-.infoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin: 38px 0; }
-.infoGrid div { padding: 16px; border-left: 2px solid #efc867; background: rgba(255,255,255,.04); }
-.infoGrid span { display: block; color: #a99dbd; font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; }
-.infoGrid strong { display: block; margin-top: 7px; }
-.content h2 { font-size: 1.45rem; }
-.description { color: #d7d0de; line-height: 1.8; white-space: pre-line; }
-.registerButton { margin-top: 24px; padding: 14px 26px; border: 0; border-radius: 6px; color: #1a1027; background: #efc867; font-weight: 800; cursor: pointer; }
-.state { max-width: 900px; margin: 100px auto; text-align: center; font-size: 1.2rem; }
-
-@media (max-width: 760px) {
-    .page { padding: 96px 18px 45px; }
-    .card { grid-template-columns: 1fr; }
-    .posterWrap, .poster { min-height: 360px; }
-    .content { padding: 34px 24px 40px; }
-}
 .eventPage {
+    --gold: #efc867;
+    --ink: #f8f0df;
+    --muted: #b9adc9;
+    --panel: rgba(255, 255, 255, .04);
+    --line: rgba(239, 200, 103, .16);
+
     min-height: 100vh;
-    padding: 108px 24px 64px;
-    color: #f8f0df;
-    background: radial-gradient(circle at 50% -20%, #4b2768 0, #171127 42%, #080711 100%);
+    padding: 120px 24px 72px;
+    color: var(--ink);
+    background: radial-gradient(circle at 50% -10%, #4b2768 0, #1a1230 40%, #080711 100%);
 }
 
 .eventShell {
     max-width: 1180px;
     margin: 0 auto;
-    padding: 42px clamp(24px, 5vw, 58px) 58px;
-    border: 1px solid rgba(239, 200, 103, .24);
-    border-radius: 28px;
-    background: rgba(22, 18, 38, .86);
-    box-shadow: 0 28px 80px rgba(0, 0, 0, .42);
+}
+
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: .95rem;
+    cursor: pointer;
+}
+
+.backLink:hover {
+    color: var(--gold);
+}
+
+.hero {
+    margin-bottom: 40px;
 }
 
 .eventTitle {
     margin: 0;
-    font-size: clamp(2.2rem, 5vw, 4.3rem);
-    line-height: 1;
-    letter-spacing: -.03em;
-}
-
-.eyebrow {
-    margin: 0 0 10px;
-    color: #efc867;
-    font-size: .72rem;
+    font-family: 'Cinzel', 'Times New Roman', serif;
+    font-size: clamp(2.2rem, 5.5vw, 4.2rem);
     font-weight: 700;
-    letter-spacing: .22em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
 }
 
-.eventBody { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(0, 1.2fr); gap: 52px; }
-.eventMedia { display: flex; flex-direction: column; align-items: stretch; }
-.poster { width: 100%; max-width: 380px; aspect-ratio: 1 / 1.15; object-fit: cover; border-radius: 20px; margin-bottom: 18px; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
-.eventInfo { min-width: 0; }
-.facts { padding: 24px; border: 1px solid rgba(239, 200, 103, .16); border-radius: 18px; background: rgba(255,255,255,.055) !important; }
-.rulebook, .registerButton { display: block; width: 100%; max-width: 380px; border-radius: 10px !important; text-align: center; text-decoration: none; }
-.rulebook { margin-bottom: 12px; padding: 14px; color: #f8f0df !important; background: rgba(255,255,255,.1) !important; }
-.registerButton { padding: 16px !important; color: #1b1126 !important; background: linear-gradient(135deg, #f5d67e, #c99635) !important; font-size: 1rem !important; font-weight: 800 !important; cursor: pointer; }
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
 
-@media (max-width: 760px) {
-    .eventPage { padding: 86px 14px 35px; }
-    .eventShell { padding: 28px 18px 38px; border-radius: 20px; }
-    .eventBody { grid-template-columns: 1fr; gap: 28px; }
-    .poster, .rulebook, .registerButton { max-width: none; }
+.chip {
+    padding: 5px 12px;
+    border-radius: 6px;
+    color: #e6dcc4;
+    background: rgba(239, 200, 103, .12);
+    font-size: .85rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.eventBody {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+}
+
+.sidebar {
+    position: sticky;
+    top: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.poster {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: 14px;
+    background: #171326;
+}
+
+.registerCard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 14px;
+    background: var(--panel);
+}
+
+.feeRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.feeRow span {
+    color: var(--muted);
+    font-size: .95rem;
+}
+
+.feeRow strong {
+    color: var(--gold);
+    font-size: 1.6rem;
+}
+
+.deadline {
+    margin: 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.registerButton,
+.secondaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter .15s ease, background .15s ease;
+}
+
+.registerButton {
+    border: 0;
+    color: #1b1126;
+    background: var(--gold);
+}
+
+.registerButton:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+.registerButton:disabled {
+    color: #6f6680;
+    background: rgba(255, 255, 255, .1);
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    border: 1px solid rgba(239, 200, 103, .4);
+    color: var(--gold);
+    background: transparent;
+}
+
+.secondaryButton:hover {
+    background: rgba(239, 200, 103, .08);
+}
+
+.eventInfo {
+    min-width: 0;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 32px;
+    margin: 0 0 36px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+}
+
+.fact {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.factIcon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--gold);
+}
+
+.fact dt {
+    margin-bottom: 2px;
+    color: var(--muted);
+    font-size: .85rem;
+}
+
+.fact dd {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.section + .section {
+    margin-top: 40px;
+}
+
+.section h2 {
+    margin: 0 0 16px;
+    color: var(--ink);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.description {
+    color: #ddd4e6;
+    font-size: 1.02rem;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.description p {
+    margin: 0 0 14px;
+}
+
+.description h1,
+.description h2,
+.description h3,
+.description h4 {
+    margin: 26px 0 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1.12rem;
+}
+
+.description ul,
+.description ol {
+    margin: 0 0 16px;
+    padding-left: 22px;
+}
+
+.description li {
+    margin-bottom: 8px;
+}
+
+.description strong {
+    color: var(--ink);
+}
+
+.description a {
+    color: var(--gold);
+}
+
+.organizers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.organizer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.organizerName {
+    font-weight: 600;
+}
+
+.organizerPhone {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gold);
+    font-size: .95rem;
+}
+
+.resultCard {
+    max-width: 640px;
+    padding: 28px;
+    border-radius: 14px;
+    background: var(--panel);
+}
+
+.resultCard h2 {
+    margin: 0 0 12px;
+    font-size: 1.5rem;
+}
+
+.resultCard p {
+    margin: 0 0 10px;
+    color: #ddd4e6;
+    line-height: 1.7;
+}
+
+.resultSuccess h2 {
+    color: #4ade80;
+}
+
+.resultPending h2 {
+    color: #f5a35b;
+}
+
+.resultAmount {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.resultActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.resultActions .registerButton,
+.resultActions .secondaryButton {
+    width: auto;
+    padding: 12px 22px;
+}
+
+.state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 520px;
+    margin: 80px auto;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.state h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.state p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.state .secondaryButton {
+    width: auto;
+    padding: 12px 24px;
+}
+
+@media (max-width: 900px) {
+    .eventBody {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .sidebar {
+        position: static;
+        max-width: 460px;
+        width: 100%;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 560px) {
+    .eventPage {
+        padding: 96px 16px 48px;
+    }
+
+    .hero {
+        margin-bottom: 28px;
+    }
+
+    .facts {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .fact dd {
+        font-size: .98rem;
+    }
 }

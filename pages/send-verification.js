@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import styles from '../styles/send-verification.module.css' // Update path to your CSS module
+import { ButtonLoader } from '../components/Loader'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -256,7 +257,7 @@ const SendVerification = () => {
                                 }}
                             >
                                 {loading
-                                    ? 'SENDING...'
+                                    ? <ButtonLoader loading label="SENDING" />
                                     : limitReached
                                         ? 'LIMIT REACHED'
                                         : cooldown > 0

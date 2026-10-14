@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styles from './style.module.css'
+import { ButtonLoader } from '../Loader'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -208,7 +209,7 @@ const ChangePassword = () => {
                             onClick={handleSubmit}
                             disabled={loading}
                         >
-                            {loading ? 'RESETTING...' : 'SUBMIT'}
+                            <ButtonLoader loading={loading} label="RESETTING">SUBMIT</ButtonLoader>
                         </button>
                     </div>
                 </motion.form>

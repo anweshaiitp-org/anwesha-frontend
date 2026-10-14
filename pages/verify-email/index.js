@@ -6,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { motion } from 'framer-motion'
 import styles from '../../components/UserRegister-Login/style.module.css'
+import Loader from '../../components/Loader'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -147,18 +148,12 @@ export default function VerifyEmailPage() {
                             </h2>
 
                             {status === 'checking' && (
-                                <div style={{ padding: '20px 0', color: '#ffffff' }}>
-                                    <p style={{ fontSize: '1rem', color: '#dddddd' }}>
-                                        Initializing verification...
-                                    </p>
-                                </div>
+                                <Loader label="Initializing verification…" />
                             )}
 
                             {status === 'verifying' && (
                                 <div style={{ padding: '20px 0', color: '#ffffff' }}>
-                                    <p style={{ fontSize: '1.1rem', color: '#ffcc00', marginBottom: '10px' }}>
-                                        ⏳ Verifying your email address...
-                                    </p>
+                                    <Loader label="Verifying your email address…" />
                                     <p style={{ fontSize: '0.85rem', color: '#aaaaaa' }}>
                                         Please wait a moment.
                                     </p>

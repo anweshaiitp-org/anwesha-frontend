@@ -31,6 +31,12 @@ function describeError(kind, serverMessage) {
                 message: serverMessage || 'This ticket cannot be used. If you think this is a mistake, contact the Anwesha team with your Anwesha ID.',
                 retryable: false,
             }
+        case 'closed':
+            return {
+                title: 'Ticket closed after exit',
+                message: serverMessage || 'You marked your exit, so this ticket can no longer be used for entry.',
+                retryable: false,
+            }
         case 'rate-limit':
             return {
                 title: 'Too many attempts',
@@ -54,7 +60,8 @@ function describeError(kind, serverMessage) {
 
 const kindFromStatus = (status) => {
     if (status === 404) return 'not-found'
-    if (status === 400 || status === 401 || status === 403 || status === 410) return 'invalid'
+    if (status === 410) return 'closed'
+    if (status === 400 || status === 401 || status === 403) return 'invalid'
     if (status === 429) return 'rate-limit'
     if (status >= 500) return 'server'
     return 'invalid'

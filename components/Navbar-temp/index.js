@@ -5,10 +5,22 @@ import { useState, useContext, useEffect, useRef } from 'react'
 import { AuthContext } from '../authContext'
 import { useRouter } from 'next/router'
 import Logo from '../Rive/logo'
+import { ButtonLoader } from '../Loader'
+import { ChevronRight, LogOut } from 'lucide-react'
 import { useRive, useStateMachineInput } from '@rive-app/react-canvas'
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 const STATE_MACHINE_NAME = 'Basic State Machine'
 const INPUT_NAME = 'Switch'
+
+const DRAWER_LINKS = [
+    { label: 'Home', href: '/', match: ['/'] },
+    { label: 'Events', href: '/events', match: ['/events', '/events/[eventId]'] },
+    { label: 'Multicity', href: '/coming-soon', match: ['/coming-soon', '/all-multicity'] },
+    { label: 'Gallery', href: '/gallery', match: ['/gallery'] },
+    { label: 'Sponsors', href: '/oursponsors', match: ['/oursponsors'] },
+    { label: 'About Us', href: '/aboutus', match: ['/aboutus'] },
+    { label: 'Contact Us', href: '/contact', match: ['/contact'] },
+]
 
 const cn = (...classes) => {
     return classes.filter(Boolean).join(' ')
@@ -16,7 +28,7 @@ const cn = (...classes) => {
 function Navigation() {
     const userData = useContext(AuthContext)
     const [drawerOpen, setDrawerOpen] = useState(false)
-    const [clickInputFired, setClickInputFired] = useState(false)
+    const [loggingOut, setLoggingOut] = useState(false)
     const router = useRouter()
     const [isHome, setIsHome] = useState(['/'].includes(router.pathname))
     const { rive, RiveComponent } = useRive({
@@ -30,82 +42,52 @@ function Navigation() {
         INPUT_NAME
     )
 
-    useEffect(() => {
-        if (onClickInput && clickInputFired) {
-            onClickInput.fire()
-            setClickInputFired(false)
-        }
-    }, [onClickInput, clickInputFired])
-
-    useEffect(() => {
-        if (drawerOpen) {
-            document.addEventListener('click', handleClickOutside)
-        }
-        return () => {
-            document.removeEventListener('click', handleClickOutside)
-        }
-    }, [drawerOpen])
-
     const refNav = useRef(null)
+    const riveOpen = useRef(false)
 
-    const handleClickOutside = (event) => {
-        if (refNav.current && !refNav.current.contains(event.target)) {
-            document.getElementById('drawer').style.opacity = 0
-            setTimeout(function () {
-                document.getElementById('drawer').style.display = 'none'
-            }, 300)
-            setDrawerOpen(false)
-            if (onClickInput) {
-                onClickInput.fire()
-            }
-            setClickInputFired(true)
-        } else {
+    useEffect(() => {
+        if (onClickInput && riveOpen.current !== drawerOpen) {
+            onClickInput.fire()
+            riveOpen.current = drawerOpen
         }
-    }
+    }, [drawerOpen, onClickInput])
 
     useEffect(() => {
         setIsHome(['/'].includes(router.pathname))
-        document.getElementById('drawer').style.opacity = 0
-        setTimeout(function () {
-            ; (document.getElementById('drawer').style.display = 'none'),
-                (document.getElementById('nav_div').style.backgroundColor = '')
-        }, 300)
         setDrawerOpen(false)
     }, [router.pathname])
 
-    const toggleDrawer = () => {
-        const drawer = document.getElementById('drawer')
-        const nav_div = document.getElementById('nav_div')
-        if (!drawerOpen) {
-            drawer.style.display = 'block'
-            setTimeout(
-                () => (
-                    (drawer.style.opacity = 1),
-                    (nav_div.style.backgroundColor = '#000000')
-                ),
-                300
-            )
-        } else {
-            drawer.style.opacity = 0
-            setTimeout(
-                () => (
-                    (drawer.style.display = 'none'),
-                    (nav_div.style.backgroundColor = '#000000')
-                ),
-                300
-            )
+    useEffect(() => {
+        if (!drawerOpen) return
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') setDrawerOpen(false)
         }
-        setDrawerOpen(!drawerOpen)
-        onClickInput.fire()
-    }
+        const onResize = () => {
+            if (window.innerWidth > 1050) setDrawerOpen(false)
+        }
+        window.addEventListener('keydown', onKeyDown)
+        window.addEventListener('resize', onResize)
+        return () => {
+            document.body.style.overflow = previousOverflow
+            window.removeEventListener('keydown', onKeyDown)
+            window.removeEventListener('resize', onResize)
+        }
+    }, [drawerOpen])
+
+    const toggleDrawer = () => setDrawerOpen((open) => !open)
+    const closeDrawer = () => setDrawerOpen(false)
 
     const handleLogout = () => {
+        if (loggingOut) return
         const authHeaders = userData?.getAuthHeaders
             ? userData.getAuthHeaders()
             : {}
 
         // Call backend logout if token exists
         if (userData?.token) {
+            setLoggingOut(true)
             fetch(`${host}/user/logout`, {
                 method: 'POST',
                 headers: {
@@ -124,6 +106,7 @@ function Navigation() {
                     // Clear token and user from context regardless of API success
                     userData.logout()
                     router.push('/userLogin')
+                    setLoggingOut(false)
                 })
         } else {
             // No token, just clear locally
@@ -140,16 +123,19 @@ function Navigation() {
                 style={{ color: isHome ? 'white' : 'black' }}
                 ref={refNav}
             >
-                <div className={styles.hamburger}>
-                    <RiveComponent
-                        onClick={() => {
-                            toggleDrawer()
-                        }}
-                    />
-                </div>
+                <button
+                    type="button"
+                    className={styles.hamburger}
+                    onClick={toggleDrawer}
+                    aria-label={drawerOpen ? 'Close menu' : 'Open menu'}
+                    aria-expanded={drawerOpen}
+                    aria-controls="drawer"
+                >
+                    <RiveComponent className={styles.hamburgerIcon} />
+                </button>
                 <Link
                     href="/"
-                    onClick={() => (drawerOpen ? onClickInput.fire() : '')}
+                    onClick={closeDrawer}
                     className={styles.navLogo}
                 >
                     <Image
@@ -428,8 +414,9 @@ function Navigation() {
                                     styles.sexy_button_small
                                 )}
                                 onClick={handleLogout}
+                                disabled={loggingOut}
                             >
-                                Log Out
+                                <ButtonLoader loading={loggingOut} label="Logging out">Log Out</ButtonLoader>
                             </button>
                         </div>
                     )}
@@ -438,134 +425,75 @@ function Navigation() {
                 </div>
             </div>
 
-            <div id="drawer" className={styles.nav_drawer}>
-                <ul>
-                    <li>
-                        <Link href="/">Home</Link>
-                    </li>
-                    {userData.isAuth ? (
-                        <li>
-                            <Link
-                                href="/profile"
-                                onClick={() => toggleDrawer()}
-                            >
-                                Profile
-                            </Link>
-                        </li>
-                    ) : (
-                        ''
-                    )}
+            <nav
+                id="drawer"
+                className={cn(styles.nav_drawer, drawerOpen && styles.nav_drawer_open)}
+                aria-label="Mobile navigation"
+                aria-hidden={!drawerOpen}
+            >
+                {userData.isAuth && userData.state?.user && (
+                    <Link href="/profile" className={styles.drawer_user} onClick={closeDrawer}>
+                        <span className={styles.drawer_avatar} aria-hidden="true">
+                            {(userData.state.user.full_name || 'A').charAt(0).toUpperCase()}
+                        </span>
+                        <span className={styles.drawer_user_text}>
+                            <span className={styles.drawer_user_name}>
+                                {userData.state.user.full_name || 'My profile'}
+                            </span>
+                            <span className={styles.drawer_user_id}>
+                                {userData.state.user.anwesha_id || 'View profile'}
+                            </span>
+                        </span>
+                        <ChevronRight size={20} aria-hidden="true" />
+                    </Link>
+                )}
 
-                    {/* <li>
-                        <Link
-                            href="/registration"
-                            onClick={() => toggleDrawer()}
-                        >
-                            Fest Pass
-                        </Link>
-                    </li> */}
-                    {/* <li>
-                        <Link href="/events" onClick={() => toggleDrawer()}>
-                            Events
-                        </Link>
-                    </li> */}
-                    {/* <li>
-                        <Link href="/all-multicity" onClick={() => toggleDrawer()}>
-                            Multicity
-                        </Link>
-                    </li> */}
-                    <li>
-                        <Link href="/events" onClick={() => toggleDrawer()}>
-                            Events
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/gallery" onClick={() => toggleDrawer()}>
-                            Gallery
-                        </Link>
-                    </li>
-                    {/* <li>
-                        <Link href="/schedule" onClick={() => toggleDrawer()}>
-                            Schedule
-                        </Link>
-                    </li> */}
-
-                    {/* <li>
-                        <Link href="/getPasses" onClick={() => toggleDrawer()}>
-                            Get Passes
-                        </Link>
-                    </li> */}
-                    {/* <li>
-                        <Link href="/Merch" onClick={() => toggleDrawer()}>
-                            Merch
-                        </Link>
-                    </li> */}
-                    {/* <li>
-                        <Link href="/ourteam" onClick={() => toggleDrawer()}>
-                            Teams
-                        </Link>
-                    </li> */}
-
-                    <li>
-                        <Link
-                            href="/oursponsors"
-                            onClick={() => toggleDrawer()}
-                        >
-                            SPONSORS
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/aboutus" onClick={() => toggleDrawer()}>
-                            About Us
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/contact" onClick={() => toggleDrawer()}>
-                            Contact Us
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/anweshapass" onClick={() => toggleDrawer()}>
-                            Get Passes
-                        </Link>
-                    </li>
-                    <li>
-                        {userData.isAuth && userData.state?.user ? (
-                            <div className={styles.user_container}>
+                <ul className={styles.drawer_links}>
+                    {DRAWER_LINKS.map((link) => {
+                        const active = link.match.includes(router.pathname)
+                        return (
+                            <li key={link.href}>
                                 <Link
-                                    className={styles.user_info}
-                                    href="/profile"
-                                    onClick={() => toggleDrawer()}
+                                    href={link.href}
+                                    onClick={closeDrawer}
+                                    className={cn(styles.drawer_link, active && styles.drawer_link_active)}
+                                    aria-current={active ? 'page' : undefined}
                                 >
-                                    <div>
-                                        <span className={styles.user_name}>
-                                            {userData.state.user.full_name || ''}
-                                        </span>
-                                        <span className={styles.user_id}>
-                                            {userData.state.user.anwesha_id || ''}
-                                        </span>
-                                    </div>
+                                    {link.label}
+                                    <ChevronRight size={18} aria-hidden="true" />
                                 </Link>
-                                <Image
-                                    src="/assets/logout.svg"
-                                    className={styles.logout}
-                                    height={40}
-                                    width={40}
-                                    alt="logout"
-                                    onClick={handleLogout}
-                                />
-                            </div>
-                        ) : (
-                            <Link
-                                href={`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`}
-                                onClick={() => toggleDrawer()}
-                            >
-                                Login
-                            </Link>
-                        )}
-                    </li>
+                            </li>
+                        )
+                    })}
                 </ul>
-            </div>
+
+                <div className={styles.drawer_actions}>
+                    <Link href="/anweshapass" onClick={closeDrawer} className={styles.drawer_primary}>
+                        Get Passes
+                    </Link>
+                    {userData.isAuth ? (
+                        <button
+                            type="button"
+                            className={styles.drawer_secondary}
+                            onClick={handleLogout}
+                            disabled={loggingOut}
+                        >
+                            <ButtonLoader loading={loggingOut} label="Logging out">
+                                <LogOut size={18} aria-hidden="true" />
+                                Log Out
+                            </ButtonLoader>
+                        </button>
+                    ) : (
+                        <Link
+                            href={`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`}
+                            onClick={closeDrawer}
+                            className={styles.drawer_secondary}
+                        >
+                            Login
+                        </Link>
+                    )}
+                </div>
+            </nav>
         </>
     )
 }

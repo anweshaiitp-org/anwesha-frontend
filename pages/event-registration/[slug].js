@@ -4,9 +4,11 @@ import {
     teamEventRegistrationNew,
 } from '../../components/Event Registration/teamEventRegistration'
 import styles from '../../styles/EventRegistration.module.css'
+import { ButtonLoader } from '../../components/Loader'
 import { AuthContext } from '../../components/authContext'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
+import Head from 'next/head'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
  
@@ -81,6 +83,10 @@ const EventRegistration = () => {
 
     return (
         <div>
+            <Head>
+                <title>{name ? `${name.split('#')[0]} Registration - Anwesha 2027` : 'Event Registration - Anwesha 2027'}</title>
+                <link rel="icon" href="/logo_no_bg.svg" />
+            </Head>
             <div className={styles.container}>
                 <div className={styles.effectcontainer}>
                     <div className={styles.content}>
@@ -195,7 +201,7 @@ const EventRegistration = () => {
                                         type='submit'
                                         disabled={isSubmitting}
                                     >
-                                        {isSubmitting ? 'REGISTERING...' : 'REGISTER'}
+                                        <ButtonLoader loading={isSubmitting} label='REGISTERING'>REGISTER</ButtonLoader>
                                     </button>
                                 </div>
                             </motion.div>

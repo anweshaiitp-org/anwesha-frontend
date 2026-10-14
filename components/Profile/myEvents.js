@@ -1,18 +1,174 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useCallback } from 'react'
 import styles from './profile.module.css'
 import { AuthContext } from '../authContext'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import ExitStatusModal from './ExitStatusModal'
+import Loader, { ButtonLoader } from '../Loader'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
+
+const isConfirmedRegistration = (registration) =>
+    registration.payment_done || registration.registration_status === 'CONFIRMED'
+
+const formatExitTime = (value) =>
+    new Date(value).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+    })
 
 function MyEvents() {
     const [events, setEvents] = useState({ solo: [], team: [] })
     const [passes, setPasses] = useState([])
+    const [gate, setGate] = useState({ entered: false, revokedAt: null })
+    const [clockOffset, setClockOffset] = useState(0)
+    const [now, setNow] = useState(() => Date.now())
+    const [refreshKey, setRefreshKey] = useState(0)
+    const [exitingEventId, setExitingEventId] = useState(null)
+    const [exitPass, setExitPass] = useState(null)
+    const [loadingEvents, setLoadingEvents] = useState(true)
+    const [payingId, setPayingId] = useState(null)
     const userData = useContext(AuthContext)
     const authHeaders = userData?.getAuthHeaders ? userData.getAuthHeaders() : {}
 
+    const allRegistrations = [...(events.solo || []), ...(events.team || [])]
+    const hasPendingExit = allRegistrations.some(
+        (e) => isConfirmedRegistration(e) && e.exit_enabled_at && !e.exited_at
+    )
+    const isExitTimeReached = (e) => Date.parse(e.exit_enabled_at) <= now + clockOffset
+    const awaitingEntry =
+        !gate.entered &&
+        !gate.revokedAt &&
+        allRegistrations.some(
+            (e) => isConfirmedRegistration(e) && e.exit_enabled_at && !e.exited_at && isExitTimeReached(e)
+        )
+    const canExit = (e) =>
+        isConfirmedRegistration(e) &&
+        Boolean(e.exit_enabled_at) &&
+        !e.exited_at &&
+        gate.entered &&
+        !gate.revokedAt &&
+        isExitTimeReached(e)
+
+    useEffect(() => {
+        if (!hasPendingExit) return
+        setNow(Date.now())
+        const timer = setInterval(() => setNow(Date.now()), 5000)
+        return () => clearInterval(timer)
+    }, [hasPendingExit])
+
+    useEffect(() => {
+        if (!awaitingEntry) return
+        setRefreshKey((key) => key + 1)
+        const timer = setInterval(() => setRefreshKey((key) => key + 1), 30000)
+        return () => clearInterval(timer)
+    }, [awaitingEntry])
+
+    useEffect(() => {
+        if (!hasPendingExit) return
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') setRefreshKey((key) => key + 1)
+        }
+        document.addEventListener('visibilitychange', onVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+    }, [hasPendingExit])
+
+    const closeExitPass = useCallback(() => setExitPass(null), [])
+
+    const requestExit = async (registration) => {
+        setExitingEventId(registration.event_id)
+        try {
+            const res = await fetch(`${host}/registration/exit`, {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ event_id: registration.event_id }),
+            })
+            const data = await res.json().catch(() => ({}))
+
+            if (!res.ok || !data.success || !data.exit) {
+                toast.error(data.message || 'Could not record your exit. Please try again.', { autoClose: 4000 })
+                setRefreshKey((key) => key + 1)
+                return
+            }
+
+            const exitedAt = data.exit.exited_at
+            const markExited = (list) =>
+                (list || []).map((item) =>
+                    item.event_id === registration.event_id ? { ...item, exited_at: exitedAt } : item
+                )
+            setEvents((prev) => ({ ...prev, solo: markExited(prev.solo), team: markExited(prev.team) }))
+            setGate((prev) => ({ entered: false, revokedAt: prev.revokedAt || exitedAt }))
+            setExitPass(data.exit)
+        } catch (error) {
+            console.error('[MyEvents] Exit error:', error)
+            toast.error('Network error. Please try again.', { autoClose: 3000 })
+        } finally {
+            setExitingEventId(null)
+        }
+    }
+
+    const handleExit = (registration) => {
+        const confirmed = window.confirm(
+            `Mark your exit from ${registration.event_name}?\n\nYour QR code will stop working and you can't re-enter.`
+        )
+        if (confirmed) requestExit(registration)
+    }
+
+    const renderExitControls = (e) => {
+        const isBusy = exitingEventId === e.event_id
+
+        if (e.exited_at) {
+            return (
+                <div style={{ marginTop: '10px' }}>
+                    <div style={{ color: '#ff8a80', fontWeight: '600', marginBottom: '8px' }}>
+                        Exited at {formatExitTime(e.exited_at)} · QR revoked
+                    </div>
+                    <button
+                        className={styles.payment_btn}
+                        disabled={isBusy}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            requestExit(e);
+                        }}
+                        style={{ padding: '8px 16px', background: 'transparent', color: '#F2BF51', border: '1px solid #F2BF51', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
+                    >
+                        <ButtonLoader loading={isBusy} label="Loading…">
+                            View Exit Pass
+                        </ButtonLoader>
+                    </button>
+                </div>
+            )
+        }
+
+        if (!canExit(e)) return null
+
+        return (
+            <div style={{ marginTop: '10px' }}>
+                <button
+                    className={styles.payment_btn}
+                    disabled={isBusy}
+                    onClick={(event) => {
+                        event.preventDefault();
+                        handleExit(e);
+                    }}
+                    style={{ padding: '8px 16px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
+                >
+                    <ButtonLoader loading={isBusy} label="Exiting…">
+                        Exit Event
+                    </ButtonLoader>
+                </button>
+            </div>
+        )
+    }
+
     const initiatePayment = async (domain, eventId, teamId = null) => {
+        setPayingId(teamId || eventId)
         try {
             toast.info('Initiating secure payment gateway...', { autoClose: 2000 })
             const payload = {
@@ -80,6 +236,8 @@ function MyEvents() {
         } catch (error) {
             console.error("Payment Error", error)
             toast.error('Payment Error. Please try again.', { autoClose: 3000 })
+        } finally {
+            setPayingId(null)
         }
     }
     // Fallback to old endpoint for backward compatibility
@@ -124,6 +282,14 @@ function MyEvents() {
                 const data = await response.json()
                 console.log('[MyEvents] Registrations data:', data)
 
+                if (data.server_time) {
+                    setClockOffset(Date.parse(data.server_time) - Date.now())
+                }
+                setGate({
+                    entered: Boolean(data.entered),
+                    revokedAt: data.ticket_revoked_at || null,
+                })
+
                 // Map response to events and passes state
                 const normalizeStatus = (reg) => {
                     if (reg.payment_status) return String(reg.payment_status).toUpperCase();
@@ -147,6 +313,8 @@ function MyEvents() {
                         event_start_time: reg.event_start_time || reg.registration_date,
                         event_end_time: reg.event_end_time,
                         payment_url: reg.payment_url,
+                        exit_enabled_at: reg.exit_enabled_at,
+                        exited_at: reg.exited_at,
                     };
                 })
 
@@ -167,6 +335,8 @@ function MyEvents() {
                         payment_url: reg.payment_url,
                         is_leader: reg.is_leader !== undefined ? reg.is_leader : true,
                         team_members: reg.team_members || reg.members || [],
+                        exit_enabled_at: reg.exit_enabled_at,
+                        exited_at: reg.exited_at,
                     };
                 })
 
@@ -187,14 +357,16 @@ function MyEvents() {
             } catch (error) {
                 console.error('[MyEvents] Error fetching registrations:', error)
                 // Fallback to old endpoint if new one fails
-                fetchEventMyEventsOldEndpoint()
+                await fetchEventMyEventsOldEndpoint()
+            } finally {
+                setLoadingEvents(false)
             }
         }
 
         if (userData.state?.user?.anwesha_id) {
             fetchUserRegistrations()
         }
-    }, [userData.state?.user?.anwesha_id])
+    }, [userData.state?.user?.anwesha_id, refreshKey])
 
     return (
         // <div>
@@ -505,7 +677,9 @@ function MyEvents() {
         // </div>
 
         <div className={styles.eventsInfo}>
-            {!events.solo ||
+            {loadingEvents ? (
+                <Loader label="Loading your events…" />
+            ) : !events.solo ||
             (events.solo.length === 0 &&
                 events.team.length === 0 &&
                 passes.length === 0) ? (
@@ -575,13 +749,16 @@ function MyEvents() {
                                             </div>
                                             <button 
                                                 className={styles.payment_btn}
+                                                disabled={payingId === e.event_id}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("SOLO_EVENT", e.event_id);
                                                 }}
                                                 style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
-                                                Retry Payment
+                                                <ButtonLoader loading={payingId === e.event_id} label="Processing">
+                                                    Retry Payment
+                                                </ButtonLoader>
                                             </button>
                                         </div>
                                     )}
@@ -593,16 +770,21 @@ function MyEvents() {
                                             </div>
                                             <button 
                                                 className={styles.payment_btn}
+                                                disabled={payingId === e.event_id}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("SOLO_EVENT", e.event_id);
                                                 }}
                                                 style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
-                                                Pay Now
+                                                <ButtonLoader loading={payingId === e.event_id} label="Processing">
+                                                    Pay Now
+                                                </ButtonLoader>
                                             </button>
                                         </div>
                                     )}
+
+                                    {renderExitControls(e)}
                                 </div>
                             </div>
                         )
@@ -659,13 +841,16 @@ function MyEvents() {
                                             </div>
                                             <button 
                                                 className={styles.payment_btn}
+                                                disabled={payingId === (e.team_id || e.event_id)}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
                                                 }}
                                                 style={{ padding: '8px 16px', background: '#ff3e3e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
-                                                Retry Payment
+                                                <ButtonLoader loading={payingId === (e.team_id || e.event_id)} label="Processing">
+                                                    Retry Payment
+                                                </ButtonLoader>
                                             </button>
                                         </div>
                                     )}
@@ -677,22 +862,31 @@ function MyEvents() {
                                             </div>
                                             <button 
                                                 className={styles.payment_btn}
+                                                disabled={payingId === (e.team_id || e.event_id)}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     initiatePayment("TEAM_EVENT", e.event_id, e.team_id);
                                                 }}
                                                 style={{ padding: '8px 16px', background: '#e67e22', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', display: 'inline-block' }}
                                             >
-                                                Pay Now
+                                                <ButtonLoader loading={payingId === (e.team_id || e.event_id)} label="Processing">
+                                                    Pay Now
+                                                </ButtonLoader>
                                             </button>
                                         </div>
                                     )}
+
+                                    {renderExitControls(e)}
                                 </div>
                             </div>
                         )
                     })}
                 </div>
             ) : null}
+
+            {exitPass && (
+                <ExitStatusModal pass={exitPass} clockOffset={clockOffset} onClose={closeExitPass} />
+            )}
 
             {/* <div>
                 <div className={styles.eventsHeading}>Event Passes</div>

@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styles from './style.module.css'
+import { ButtonLoader } from '../Loader'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from '../authContext'
@@ -264,7 +265,7 @@ const UserLoginForm = () => {
                                 )}
                                 disabled={loaded}
                             >
-                                {loaded ? 'LOGGING..' : 'LOGIN'}
+                                <ButtonLoader loading={loaded} label="LOGGING IN">LOGIN</ButtonLoader>
                             </button>
                         </div>
 

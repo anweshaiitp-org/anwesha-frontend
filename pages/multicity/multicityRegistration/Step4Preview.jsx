@@ -1,19 +1,23 @@
 // src/pages/register/Step4Preview.jsx
-import React from 'react'
+import React, { useState } from 'react'
 import { useAuthUser } from '../../../lib/multicity/context/AuthUserContext'
 import toast from 'react-hot-toast'
 import { ClipboardList } from 'lucide-react'
+import { ButtonLoader } from '../../../components/Loader'
 
 export default function Step4Preview({ formData = {}, next }) {
     const { currentUser, finalizeRegistration, updateUser } = useAuthUser()
+    const [submitting, setSubmitting] = useState(false)
 
     const handleFinalSubmit = async () => {
+        if (submitting) return
         try {
             if (!currentUser?.uid) {
                 toast.error('User not found. Please login again.')
                 return
             }
 
+            setSubmitting(true)
             const anweshaId = await finalizeRegistration(
                 currentUser.uid,
                 formData
@@ -24,6 +28,8 @@ export default function Step4Preview({ formData = {}, next }) {
             next(anweshaId)
         } catch (err) {
             toast.error(err.message)
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -180,6 +186,7 @@ export default function Step4Preview({ formData = {}, next }) {
                 {/* Submit Button */}
                 <button
                     onClick={handleFinalSubmit}
+                    disabled={submitting}
                     style={{
                         marginTop: '2rem',
                         paddingLeft: '1.5rem',
@@ -196,20 +203,23 @@ export default function Step4Preview({ formData = {}, next }) {
                         transition: 'all 0.3s ease',
                         transform: 'scale(1)',
                         border: 'none',
-                        cursor: 'pointer',
+                        cursor: submitting ? 'not-allowed' : 'pointer',
+                        opacity: submitting ? 0.6 : 1,
                     }}
                     onMouseEnter={(e) => {
-                        e.target.style.background =
+                        e.currentTarget.style.background =
                             'linear-gradient(to right, #095DB7, #41D7B7)'
-                        e.target.style.transform = 'scale(1.05)'
+                        e.currentTarget.style.transform = 'scale(1.05)'
                     }}
                     onMouseLeave={(e) => {
-                        e.target.style.background =
+                        e.currentTarget.style.background =
                             'linear-gradient(to right, #41D7B7, #095DB7)'
-                        e.target.style.transform = 'scale(1)'
+                        e.currentTarget.style.transform = 'scale(1)'
                     }}
                 >
-                    ✅ Submit & Register
+                    <ButtonLoader loading={submitting} label="Registering">
+                        ✅ Submit & Register
+                    </ButtonLoader>
                 </button>
             </div>
         </div>

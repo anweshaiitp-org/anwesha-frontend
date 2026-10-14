@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/router'
 import details from '../prof_staff_details'
 import styles from './style.module.css'
+import { ButtonLoader } from '../Loader'
 
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
@@ -332,9 +333,9 @@ const UserRegisterForm = () => {
                             <button
                                 onClick={handleSubmit}
                                 className={cn(styles.register_button)}
-                                style={loading ? { letterSpacing: '-0.1ch' } : {}}
+                                disabled={loading}
                             >
-                                {!loading ? 'REGISTER' : 'REGISTERING...'}
+                                <ButtonLoader loading={loading} label="REGISTERING">REGISTER</ButtonLoader>
                             </button>
                         </div>
                         <br />

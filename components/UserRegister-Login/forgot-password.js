@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './style.module.css'
+import { ButtonLoader } from '../Loader'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from '../authContext'
@@ -177,7 +178,7 @@ const ForgotPassword = () => {
                                 onClick={handleSubmit}
                                 disabled={loading}
                             >
-                                {loading ? 'SENDING...' : 'SUBMIT'}
+                                <ButtonLoader loading={loading} label="SENDING">SUBMIT</ButtonLoader>
                             </button>
                         </div>
                     </div>

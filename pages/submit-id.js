@@ -5,8 +5,8 @@ import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthContext } from '../components/authContext'
 import styles from '../styles/profile.module.css'
+import { ButtonLoader } from '../components/Loader'
 import {
-    ID_CARD_TYPES,
     requestUploadUrl,
     submitIdCard,
     uploadFileToS3,
@@ -14,7 +14,7 @@ import {
 } from '../lib/idVerification'
 
 /**
- * Task 4 — Student ID Verification & Review Flow.
+ * Task 4 — Student Dual Document Verification (College ID + Aadhar ID).
  * Route: /submit-id?token=xxx (token comes from verification email).
  */
 export default function SubmitId() {
@@ -22,14 +22,22 @@ export default function SubmitId() {
     const auth = useContext(AuthContext)
 
     const [emailToken, setEmailToken] = useState('')
-    const [idType, setIdType] = useState('COLLEGE_ID')
-    const [idNumber, setIdNumber] = useState('')
-    const [file, setFile] = useState(null)
+
+    // College ID state
+    const [collegeIdNumber, setCollegeIdNumber] = useState('')
+    const [collegeIdFile, setCollegeIdFile] = useState(null)
+    const [dragActiveCollege, setDragActiveCollege] = useState(false)
+
+    // Aadhar ID state
+    const [aadharIdNumber, setAadharIdNumber] = useState('')
+    const [aadharIdFile, setAadharIdFile] = useState(null)
+    const [dragActiveAadhar, setDragActiveAadhar] = useState(false)
+
     const [submitting, setSubmitting] = useState(false)
+    const [submittingStep, setSubmittingStep] = useState('')
     const [submitted, setSubmitted] = useState(false) // UPLOADED / pending-review
     const [verifiedStatus, setVerifiedStatus] = useState(null)
     const [formError, setFormError] = useState('')
-    const [dragActive, setDragActive] = useState(false)
 
     // Ensure user is logged in before allowing access to this page
     useEffect(() => {
@@ -43,16 +51,16 @@ export default function SubmitId() {
                 `/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`
             )
         }
-    }, [router.isReady, auth?.token, router.asPath])
+    }, [router.isReady, auth?.token, router.asPath, router])
 
     // Step 1: read verification token from query params
     useEffect(() => {
         if (!router.isReady) return
-        const t = router.query.token
+        const t = router.query?.token
         if (typeof t === 'string' && t) {
             setEmailToken(t)
         }
-    }, [router.isReady, router.query.token])
+    }, [router.isReady, router.query?.token, router])
 
     // Surface existing verification state from profile (UPLOADED / VERIFIED)
     useEffect(() => {
@@ -61,29 +69,55 @@ export default function SubmitId() {
         if (s) setVerifiedStatus(String(s).toUpperCase())
     }, [auth?.state?.user])
 
-    const handleFileChange = (e) => {
+    const handleFileChangeCollege = (e) => {
         const f = e.target.files?.[0] || null
-        setFile(f)
+        setCollegeIdFile(f)
         setFormError('')
     }
 
-    const handleDrag = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
+    const handleDragCollege = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.type === 'dragenter' || e.type === 'dragover') {
+            setDragActiveCollege(true)
+        } else if (e.type === 'dragleave') {
+            setDragActiveCollege(false)
         }
     }
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
+    const handleDropCollege = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActiveCollege(false)
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setFile(e.dataTransfer.files[0]);
-            setFormError('');
+            setCollegeIdFile(e.dataTransfer.files[0])
+            setFormError('')
+        }
+    }
+
+    const handleFileChangeAadhar = (e) => {
+        const f = e.target.files?.[0] || null
+        setAadharIdFile(f)
+        setFormError('')
+    }
+
+    const handleDragAadhar = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.type === 'dragenter' || e.type === 'dragover') {
+            setDragActiveAadhar(true)
+        } else if (e.type === 'dragleave') {
+            setDragActiveAadhar(false)
+        }
+    }
+
+    const handleDropAadhar = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDragActiveAadhar(false)
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setAadharIdFile(e.dataTransfer.files[0])
+            setFormError('')
         }
     }
 
@@ -111,24 +145,44 @@ export default function SubmitId() {
             router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
             return
         }
-        if (!ID_CARD_TYPES.includes(idType)) {
-            const msg = 'Please select a valid ID type.'
+
+        // College ID Validation
+        if (!collegeIdNumber.trim()) {
+            const msg = 'Please enter your College / Student ID number.'
             setFormError(msg)
             notify('error', msg)
             return
         }
-        if (!idNumber.trim()) {
-            const msg = 'Please enter your ID card number.'
+        const collegeFileErr = validateIdFile(collegeIdFile, 'college_id')
+        if (collegeFileErr) {
+            const msg = `College ID: ${collegeFileErr}`
             setFormError(msg)
             notify('error', msg)
             return
         }
-        const fileErr = validateIdFile(file)
-        if (fileErr) {
-            setFormError(fileErr)
-            notify('error', fileErr)
+
+        // Aadhar ID Validation
+        const cleanAadhar = aadharIdNumber.replace(/[\s-]/g, '')
+        if (!cleanAadhar) {
+            const msg = 'Please enter your Aadhar Card number.'
+            setFormError(msg)
+            notify('error', msg)
             return
         }
+        if (!/^\d{12}$/.test(cleanAadhar)) {
+            const msg = 'Aadhar number must be a valid 12-digit number.'
+            setFormError(msg)
+            notify('error', msg)
+            return
+        }
+        const aadharFileErr = validateIdFile(aadharIdFile, 'aadhar_id')
+        if (aadharFileErr) {
+            const msg = `Aadhar Card: ${aadharFileErr}`
+            setFormError(msg)
+            notify('error', msg)
+            return
+        }
+
         if (verifiedStatus === 'VERIFIED') {
             const msg = 'ID already verified. Profile updates are blocked.'
             setFormError(msg)
@@ -138,51 +192,148 @@ export default function SubmitId() {
 
         setSubmitting(true)
         try {
-            // Step 2: presigned URL (JWT, URLSearchParams inside client)
-            const { uploadUrl, fileKey } = await requestUploadUrl({
-                file,
+            // Step 1: Upload College ID
+            setSubmittingStep('Uploading College ID (1/2)...')
+            const collegeUrlData = await requestUploadUrl({
+                file: collegeIdFile,
                 jwt: auth.token,
                 emailToken,
+                doc_type: 'college_id',
             })
-            // Step 3: PUT binary to S3 (no JWT)
-            await uploadFileToS3({ uploadUrl, file })
-            // Step 4: final submit
+            await uploadFileToS3({
+                uploadUrl: collegeUrlData.uploadUrl,
+                file: collegeIdFile,
+            })
+
+            // Step 2: Upload Aadhar ID
+            setSubmittingStep('Uploading Aadhar Card (2/2)...')
+            const aadharUrlData = await requestUploadUrl({
+                file: aadharIdFile,
+                jwt: auth.token,
+                emailToken,
+                doc_type: 'aadhar_id',
+            })
+            await uploadFileToS3({
+                uploadUrl: aadharUrlData.uploadUrl,
+                file: aadharIdFile,
+            })
+
+            // Step 3: Final submit
+            setSubmittingStep('Submitting verification documents...')
             await submitIdCard({
                 emailToken,
-                id_card_type: idType,
-                id_card_number: idNumber.trim(),
-                s3_file_key: fileKey,
+                college_id_number: collegeIdNumber.trim(),
+                college_id_file_key: collegeUrlData.fileKey,
+                aadhar_id_number: cleanAadhar,
+                aadhar_id_file_key: aadharUrlData.fileKey,
                 jwt: auth.token,
             })
+
             setSubmitted(true)
             setVerifiedStatus('UPLOADED')
             notify('success', 'Document submitted successfully. Verification is under process.')
             if (auth?.getUser) auth.getUser()
         } catch (err) {
-            // Never expose tokens in messages/logs
             const msg = err?.message || 'Submission failed. Please try again.'
             setFormError(msg)
             notify('error', msg)
-            if (err?.code === 401) router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
+            if (err?.code === 401) {
+                router.push(`/userLogin?callbackUrl=${encodeURIComponent(router.asPath)}`)
+            }
         } finally {
             setSubmitting(false)
+            setSubmittingStep('')
         }
     }
 
     const isTokenMissingOrInvalid = (!emailToken && router.isReady) || formError === 'Invalid token.'
 
+    // ---------- UI-only style helpers ----------
+    const sectionStyle = {
+        background: '#fdfcff',
+        border: '1px solid #ede9fe',
+        borderRadius: 14,
+        padding: '22px 20px',
+    }
+    const labelStyle = { fontSize: '0.8rem', fontWeight: 600, color: '#4c1d95', letterSpacing: '0.2px' }
+    const inputStyle = {
+        width: '100%',
+        padding: '12px 14px 12px 38px',
+        background: '#faf8ff',
+        color: '#1e1b4b',
+        border: '1.5px solid #e8e4f9',
+        borderRadius: 10,
+        fontSize: '0.95rem',
+        outline: 'none',
+        fontFamily: 'inherit',
+    }
+    const inputIconStyle = {
+        position: 'absolute',
+        left: 13,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        width: 16,
+        height: 16,
+        color: '#c4b5fd',
+        pointerEvents: 'none',
+    }
+    const dropStyle = (active) => ({
+        border: active ? '1.5px dashed #7c3aed' : '1.5px dashed #d8b4fe',
+        borderRadius: 12,
+        padding: '28px 20px',
+        textAlign: 'center',
+        background: active ? '#f5f3ff' : '#ffffff',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        position: 'relative',
+        boxShadow: active ? '0 0 0 3px rgba(124,58,237,0.07)' : 'none',
+    })
+    const hiddenFileInputStyle = {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0,
+        cursor: 'pointer',
+    }
+    const stepBadgeStyle = {
+        background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+        color: '#fff',
+        fontWeight: 700,
+        borderRadius: '50%',
+        width: 28,
+        height: 28,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.85rem',
+        flexShrink: 0,
+    }
+    const uploadIconBoxStyle = {
+        width: 44,
+        height: 44,
+        background: '#f3f0ff',
+        border: '1px solid #ddd6fe',
+        borderRadius: 10,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 12px',
+    }
+
     return (
         <>
             <Head>
-                <title>Submit ID - Anwesha 2k27</title>
-                <meta name="description" content="Student ID Verification - Anwesha 2k27" />
+                <title>Submit Verification Documents - Anwesha 2k27</title>
+                <meta name="description" content="Student ID & Aadhar Verification - Anwesha 2k27" />
             </Head>
             {/* Toasts render via the global ToastContainer in _app.js */}
             <div className={styles.mainContainer}>
                 <div className={styles.subContainer}>
 
                     {/* Page wrapper */}
-                    <div style={{ maxWidth: 620, margin: '40px auto', padding: '0 16px' }}>
+                    <div style={{ maxWidth: 680, margin: '40px auto', padding: '0 16px' }}>
 
                         {/* Top label */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
@@ -211,15 +362,15 @@ export default function SubmitId() {
                                             </svg>
                                         </div>
                                         <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#1e1b4b', letterSpacing: '-0.3px', margin: 0 }}>
-                                            Student ID Verification
+                                            Document Verification
                                         </h1>
                                     </div>
                                     <p style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, paddingLeft: 60 }}>
                                         {submitted || verifiedStatus === 'UPLOADED'
                                             ? 'Document submitted successfully. Verification is under process.'
                                             : verifiedStatus === 'VERIFIED'
-                                                ? 'Your student identity has been successfully verified.'
-                                                : 'Upload your student ID document to complete identity verification.'}
+                                                ? 'Your documents have been verified.'
+                                                : 'Please provide both your College ID and Aadhar ID for identity verification.'}
                                     </p>
                                 </div>
 
@@ -290,101 +441,151 @@ export default function SubmitId() {
                                                 </p>
                                                 <p style={{ fontSize: '0.88rem', color: '#6b7280', lineHeight: 1.6, margin: 0 }}>
                                                     {verifiedStatus === 'VERIFIED'
-                                                        ? 'Your student identity has been verified. You now have full access.'
+                                                        ? 'Your documents have been verified. You now have full access.'
                                                         : 'Verification is under process.'}
                                                 </p>
                                             </div>
                                         ) : (
-                                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                                                {/* ID Type */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4c1d95', letterSpacing: '0.2px' }}>ID Type</label>
-                                                    <div style={{ position: 'relative' }}>
-                                                        <svg style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#c4b5fd', pointerEvents: 'none' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
-                                                        </svg>
-                                                        <select
-                                                            value={idType}
-                                                            onChange={(ev) => setIdType(ev.target.value)}
-                                                            disabled={submitting}
-                                                            style={{ width: '100%', padding: '12px 38px 12px 38px', background: '#faf8ff', color: '#1e1b4b', border: '1.5px solid #e8e4f9', borderRadius: 10, fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit', appearance: 'none', WebkitAppearance: 'none' }}
-                                                        >
-                                                            {ID_CARD_TYPES.map((t) => (
-                                                                <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
-                                                            ))}
-                                                        </select>
+                                                {/* DOCUMENT 1: COLLEGE ID */}
+                                                <div style={sectionStyle}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                                        <span style={stepBadgeStyle}>1</span>
+                                                        <h2 style={{ color: '#1e1b4b', margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>College ID Card</h2>
                                                     </div>
-                                                </div>
+                                                    <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: '0 0 18px 38px', lineHeight: 1.5 }}>
+                                                        Upload your current college student ID card or bonafide certificate.
+                                                    </p>
 
-                                                {/* ID Number */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4c1d95', letterSpacing: '0.2px' }}>ID Card Number</label>
-                                                    <div style={{ position: 'relative' }}>
-                                                        <svg style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#c4b5fd', pointerEvents: 'none' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                                                        </svg>
-                                                        <input
-                                                            type="text"
-                                                            value={idNumber}
-                                                            onChange={(ev) => setIdNumber(ev.target.value)}
-                                                            placeholder="e.g. 2201CS01"
-                                                            disabled={submitting}
-                                                            style={{ width: '100%', padding: '12px 14px 12px 38px', background: '#faf8ff', color: '#1e1b4b', border: '1.5px solid #e8e4f9', borderRadius: 10, fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* File Upload */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4c1d95', letterSpacing: '0.2px' }}>
-                                                        ID Document{' '}
-                                                        <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: '0.72rem' }}>— PDF only, max 5 MB</span>
-                                                    </label>
-                                                    <div
-                                                        onDragEnter={handleDrag}
-                                                        onDragLeave={handleDrag}
-                                                        onDragOver={handleDrag}
-                                                        onDrop={handleDrop}
-                                                        style={{
-                                                            border: dragActive ? '1.5px dashed #7c3aed' : '1.5px dashed #d8b4fe',
-                                                            borderRadius: 12,
-                                                            padding: '32px 20px',
-                                                            textAlign: 'center',
-                                                            background: dragActive ? '#f5f3ff' : '#fdfcff',
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s',
-                                                            position: 'relative',
-                                                            boxShadow: dragActive ? '0 0 0 3px rgba(124,58,237,0.07)' : 'none',
-                                                        }}
-                                                    >
-                                                        <input
-                                                            type="file"
-                                                            accept="application/pdf"
-                                                            onChange={handleFileChange}
-                                                            disabled={submitting}
-                                                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                                                        />
-                                                        <div style={{ width: 44, height: 44, background: '#f3f0ff', border: '1px solid #ddd6fe', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                                                            <svg style={{ width: 22, height: 22, color: '#7c3aed' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 18 }}>
+                                                        <label style={labelStyle}>College Roll / Student ID Number *</label>
+                                                        <div style={{ position: 'relative' }}>
+                                                            <svg style={inputIconStyle} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                                                             </svg>
+                                                            <input
+                                                                type="text"
+                                                                value={collegeIdNumber}
+                                                                onChange={(ev) => setCollegeIdNumber(ev.target.value)}
+                                                                placeholder="e.g. 2201CS01 or STU-9842"
+                                                                disabled={submitting}
+                                                                style={inputStyle}
+                                                            />
                                                         </div>
-                                                        {file ? (
-                                                            <>
-                                                                <p style={{ color: '#5b21b6', fontSize: '0.9rem', margin: 0, fontWeight: 600 }}>
-                                                                    📄 {file.name}
-                                                                </p>
-                                                                <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: 5 }}>{Math.round(file.size / 1024)} KB · Ready to upload</p>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
-                                                                    Drag &amp; drop your <strong style={{ color: '#7c3aed' }}>PDF</strong> here, or <strong style={{ color: '#7c3aed' }}>click to browse</strong>
-                                                                </p>
-                                                                <p style={{ color: '#c4b5fd', fontSize: '0.75rem', marginTop: 5 }}>Accepted: .pdf · Max size: 5 MB</p>
-                                                            </>
-                                                        )}
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                                                        <label style={labelStyle}>
+                                                            College ID Document *{' '}
+                                                            <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: '0.72rem' }}>— PNG, JPG, JPEG, max 5 MB</span>
+                                                        </label>
+                                                        <div
+                                                            onDragEnter={handleDragCollege}
+                                                            onDragLeave={handleDragCollege}
+                                                            onDragOver={handleDragCollege}
+                                                            onDrop={handleDropCollege}
+                                                            style={dropStyle(dragActiveCollege)}
+                                                        >
+                                                            <input
+                                                                type="file"
+                                                                accept="image/png, image/jpeg, image/jpg"
+                                                                onChange={handleFileChangeCollege}
+                                                                disabled={submitting}
+                                                                style={hiddenFileInputStyle}
+                                                            />
+                                                            <div style={uploadIconBoxStyle}>
+                                                                <svg style={{ width: 22, height: 22, color: '#7c3aed' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                </svg>
+                                                            </div>
+                                                            {collegeIdFile ? (
+                                                                <>
+                                                                    <p style={{ color: '#5b21b6', fontSize: '0.9rem', margin: 0, fontWeight: 600 }}>
+                                                                        📄 {collegeIdFile.name}
+                                                                    </p>
+                                                                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: 5 }}>{Math.round(collegeIdFile.size / 1024)} KB · Ready to upload</p>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
+                                                                        Drag &amp; drop your <strong style={{ color: '#7c3aed' }}>image</strong> here, or <strong style={{ color: '#7c3aed' }}>click to browse</strong>
+                                                                    </p>
+                                                                    <p style={{ color: '#c4b5fd', fontSize: '0.75rem', marginTop: 5 }}>Accepted: .png, .jpg, .jpeg · Max size: 5 MB</p>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* DOCUMENT 2: AADHAR CARD */}
+                                                <div style={sectionStyle}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                                        <span style={stepBadgeStyle}>2</span>
+                                                        <h2 style={{ color: '#1e1b4b', margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>Aadhar Card</h2>
+                                                    </div>
+                                                    <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: '0 0 18px 38px', lineHeight: 1.5 }}>
+                                                        Upload your official 12-digit Aadhar identity card.
+                                                    </p>
+
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 18 }}>
+                                                        <label style={labelStyle}>Aadhar Number (12 digits) *</label>
+                                                        <div style={{ position: 'relative' }}>
+                                                            <svg style={inputIconStyle} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
+                                                            </svg>
+                                                            <input
+                                                                type="text"
+                                                                value={aadharIdNumber}
+                                                                onChange={(ev) => setAadharIdNumber(ev.target.value)}
+                                                                placeholder="e.g. 1234 5678 9012"
+                                                                maxLength={14}
+                                                                disabled={submitting}
+                                                                style={inputStyle}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                                                        <label style={labelStyle}>
+                                                            Aadhar Document *{' '}
+                                                            <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: '0.72rem' }}>— PDF only, max 5 MB</span>
+                                                        </label>
+                                                        <div
+                                                            onDragEnter={handleDragAadhar}
+                                                            onDragLeave={handleDragAadhar}
+                                                            onDragOver={handleDragAadhar}
+                                                            onDrop={handleDropAadhar}
+                                                            style={dropStyle(dragActiveAadhar)}
+                                                        >
+                                                            <input
+                                                                type="file"
+                                                                accept="application/pdf"
+                                                                onChange={handleFileChangeAadhar}
+                                                                disabled={submitting}
+                                                                style={hiddenFileInputStyle}
+                                                            />
+                                                            <div style={uploadIconBoxStyle}>
+                                                                <svg style={{ width: 22, height: 22, color: '#7c3aed' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                                </svg>
+                                                            </div>
+                                                            {aadharIdFile ? (
+                                                                <>
+                                                                    <p style={{ color: '#5b21b6', fontSize: '0.9rem', margin: 0, fontWeight: 600 }}>
+                                                                        📄 {aadharIdFile.name}
+                                                                    </p>
+                                                                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: 5 }}>{Math.round(aadharIdFile.size / 1024)} KB · Ready to upload</p>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
+                                                                        Drag &amp; drop your <strong style={{ color: '#7c3aed' }}>PDF</strong> here, or <strong style={{ color: '#7c3aed' }}>click to browse</strong>
+                                                                    </p>
+                                                                    <p style={{ color: '#c4b5fd', fontSize: '0.75rem', marginTop: 5 }}>Accepted: .pdf · Max size: 5 MB</p>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -417,16 +618,15 @@ export default function SubmitId() {
                                                         onMouseDown={e => { if (!submitting) e.currentTarget.style.transform = 'scale(0.98)'; }}
                                                         onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                                                     >
-                                                        <svg style={{ width: 18, height: 18 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                                        </svg>
-                                                        {submitting ? 'Submitting...' : 'Submit for Review'}
+                                                        <ButtonLoader loading={submitting} label={submittingStep || 'Submitting'}>
+                                                            Submit Documents for Review
+                                                        </ButtonLoader>
                                                     </button>
                                                     <p style={{ textAlign: 'center', fontSize: '0.73rem', color: '#a78bfa', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                                                         <svg style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                                         </svg>
-                                                        Your data is encrypted and stored securely
+                                                        Both documents are securely uploaded and verified by authorized Anwesha administrators.
                                                     </p>
                                                 </div>
 

@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styles from './style.module.css'
+import { ButtonLoader } from '../Loader'
 import { motion } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
 import { AuthContext } from '../authContext'
@@ -192,7 +193,7 @@ const ChangePasswordForm = () => {
                                 className={cn(styles.register_button)}
                                 disabled={loading}
                             >
-                                {loading ? 'CHANGING...' : 'CHANGE PASSWORD'}
+                                <ButtonLoader loading={loading} label="CHANGING">CHANGE PASSWORD</ButtonLoader>
                             </button>
                         </div>
 

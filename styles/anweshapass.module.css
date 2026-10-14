@@ -1152,6 +1152,7 @@
 .Melody_Night_body>div>h2 {
     align-self: stretch;
     color: var(--Color-Primary500, #F2BF51);
+    margin-bottom: 20px;
 
     /* SF/SF - 64 Reg */
     font-family: 'Cinzel_Decorative', serif;

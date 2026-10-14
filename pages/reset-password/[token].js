@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import styles from '../../components/UserRegister-Login/style.module.css'
+import { ButtonLoader } from '../../components/Loader'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
@@ -236,7 +237,7 @@ const ResetPassword = () => {
                                 onClick={handleSubmit}
                                 disabled={loading}
                             >
-                                {loading ? 'RESETTING...' : 'RESET PASSWORD'}
+                                <ButtonLoader loading={loading} label="RESETTING">RESET PASSWORD</ButtonLoader>
                             </button>
                         </div>
                     </div>

@@ -8,6 +8,7 @@ import Card from '../components/EventItem/index.js'
 // import Modal from '../components/EventItem/Modal.js'
 import EventItem from '../components/EventItem'
 import Modal from '../components/BigModal/index.js'
+import Loader from '../components/Loader'
 // import eventsDetails from '../public/events/events_data.json' assert { type: 'json' };
 
 // DEPRECATED: Static event data - now fetched from backend /event/allevents
@@ -252,9 +253,7 @@ const Events = () => {
                     <div className={styles.titleText}>COMING SOON...</div>
                 </div>
                 {loading ? (
-                    <div style={{ color: 'white', fontSize: '24px', textAlign: 'center', width: '100%', margin: '40px 0' }}>
-                        Loading events...
-                    </div>
+                    <Loader label="Loading events…" fullPage />
                 ) : events.length === 0 ? (
                     <div style={{ color: 'white', fontSize: '24px', textAlign: 'center', width: '100%', margin: '40px 0' }}>
                         {/* ADD SOMETHING */}

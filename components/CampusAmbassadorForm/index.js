@@ -5,6 +5,7 @@ import Modal from '../Modal'
 import styles from './style.module.css'
 import { motion } from 'framer-motion'
 import GreetingLottie from '../displaylottie'
+import { ButtonLoader } from '../Loader'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
@@ -19,9 +20,11 @@ const CampusAmbassadorForm = () => {
     const [success, setSuccess] = React.useState(false)
     const [failure, setFailure] = React.useState(false)
     const [errorMsg, setErrorMsg] = React.useState('')
+    const [submitting, setSubmitting] = React.useState(false)
 
     const handleSubmit = async (event) => {
         event.preventDefault()
+        if (submitting) return
 
         // check if required fields are empty
         if (
@@ -85,6 +88,7 @@ const CampusAmbassadorForm = () => {
             college_name: college,
             password: password,
         }
+        setSubmitting(true)
         try {
             const response = await fetch(
                 `${host}/campasambassador/register`,
@@ -147,6 +151,8 @@ const CampusAmbassadorForm = () => {
             }
         } catch (err) {
             console.log(err)
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -298,7 +304,9 @@ const CampusAmbassadorForm = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.8 }}
                     >
-                        <button onClick={(e) => handleSubmit(e)}>Submit</button>
+                        <button onClick={(e) => handleSubmit(e)} disabled={submitting}>
+                            <ButtonLoader loading={submitting} label="Submitting">Submit</ButtonLoader>
+                        </button>
                     </motion.div>
                 </motion.form>
                 {success && (

@@ -9,11 +9,13 @@ import LeaderboardItem from '../components/Leaderboard/LeaderboardItem'
 import Items from '../components/Leaderboard/Items'
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import Loader from '../components/Loader'
 const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 
 function Leaderboard() {
     const [searchInput, setSearchInput] = useState('')
     const [data, setData] = useState([])
+    const [loading, setLoading] = useState(true)
     useEffect(() => {
         const response = fetch(`${host}/campasambassador/leaderboarddata`, {
             method: 'GET',
@@ -24,6 +26,9 @@ function Leaderboard() {
             .then((response) => response.json())
             .then((data) => {
                 setData(data.leaderBoardData)
+            })
+            .finally(() => {
+                setLoading(false)
             })
     }, [])
 
@@ -69,45 +74,49 @@ function Leaderboard() {
                         </InputGroup>
                     </div>
 
-                    <Table striped responsive style={{ marginBottom: '100px' }}>
-                        <thead>
-                            <tr className={styles.heading_color}>
-                                <th>Position</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Points</th>
-                            </tr>
-                        </thead>
+                    {loading ? (
+                        <Loader label="Loading leaderboard…" />
+                    ) : (
+                        <Table striped responsive style={{ marginBottom: '100px' }}>
+                            <thead>
+                                <tr className={styles.heading_color}>
+                                    <th>Position</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
 
-                        <tbody>
-                            {data
-                                .filter((post) => {
-                                    if (searchInput === '') {
-                                        return post
-                                    } else if (
-                                        post.full_name
-                                            .toLowerCase()
-                                            .includes(
-                                                searchInput.toLowerCase()
-                                            ) ||
-                                        post.email_id
-                                            .toLowerCase()
-                                            .includes(searchInput.toLowerCase())
-                                    ) {
-                                        return post
-                                    }
-                                })
-                                .map((post, pos) => (
-                                    <LeaderboardItem
-                                        key={pos + 1}
-                                        position={pos + 1}
-                                        name={post.full_name}
-                                        college={post.email_id}
-                                        points={post.score}
-                                    />
-                                ))}
-                        </tbody>
-                    </Table>
+                            <tbody>
+                                {data
+                                    .filter((post) => {
+                                        if (searchInput === '') {
+                                            return post
+                                        } else if (
+                                            post.full_name
+                                                .toLowerCase()
+                                                .includes(
+                                                    searchInput.toLowerCase()
+                                                ) ||
+                                            post.email_id
+                                                .toLowerCase()
+                                                .includes(searchInput.toLowerCase())
+                                        ) {
+                                            return post
+                                        }
+                                    })
+                                    .map((post, pos) => (
+                                        <LeaderboardItem
+                                            key={pos + 1}
+                                            position={pos + 1}
+                                            name={post.full_name}
+                                            college={post.email_id}
+                                            points={post.score}
+                                        />
+                                    ))}
+                            </tbody>
+                        </Table>
+                    )}
                 </div>
             </div>
         </div>

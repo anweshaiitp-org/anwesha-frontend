@@ -1,13 +1,11 @@
 import React from 'react'
 import styles from '../../styles/homepage.module.css'
-import { motion, useReducedMotion } from 'framer-motion'
 
 const dmSerif = { className: 'font-dm-serif' }
-const GOLD = '#F2BF51'
 
 const cn = (...classes) => classes.filter(Boolean).join(' ')
 
-/* Inline SVG icons: crisp, themeable, no emoji rendering differences */
+/* Inline SVG icons: crisp, themeable */
 const iconProps = {
     width: 22,
     height: 22,
@@ -88,7 +86,7 @@ const css = `
     overflow: hidden;
 }
 
-/* soft ambient light behind the content, no box, no border */
+/* soft ambient starry light matching backdrop2_home.png */
 .acc-section::before {
     content: '';
     position: absolute;
@@ -98,9 +96,9 @@ const css = `
     height: 560px;
     transform: translate(-50%, -50%);
     background:
-        radial-gradient(ellipse at 28% 50%, rgba(242, 191, 81, 0.14), transparent 62%),
-        radial-gradient(ellipse at 80% 60%, rgba(242, 191, 81, 0.06), transparent 60%);
-    filter: blur(20px);
+        radial-gradient(ellipse at 50% 50%, rgba(147, 51, 234, 0.12), transparent 65%),
+        radial-gradient(ellipse at 25% 50%, rgba(255, 255, 255, 0.05), transparent 55%);
+    filter: blur(25px);
     pointer-events: none;
     z-index: -1;
 }
@@ -144,16 +142,16 @@ const css = `
 }
 
 .acc-cta-row button:focus-visible {
-    outline: 2px solid ${GOLD};
+    outline: 2px solid #ffffff;
     outline-offset: 4px;
 }
 
-/* feature list: hairline rows instead of boxed cards */
+/* feature list: clean hairline rows */
 .acc-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    border-top: 1px solid rgba(242, 191, 81, 0.28);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .acc-row {
@@ -162,17 +160,11 @@ const css = `
     gap: 18px;
     align-items: center;
     padding: 22px 6px;
-    border-bottom: 1px solid rgba(242, 191, 81, 0.14);
-    transition: padding-left 0.3s ease, background 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .acc-row:last-child {
-    border-bottom-color: rgba(242, 191, 81, 0.28);
-}
-
-.acc-row:hover {
-    padding-left: 14px;
-    background: linear-gradient(90deg, rgba(242, 191, 81, 0.07), transparent 70%);
+    border-bottom-color: rgba(255, 255, 255, 0.2);
 }
 
 .acc-icon {
@@ -181,9 +173,9 @@ const css = `
     border-radius: 50%;
     display: grid;
     place-items: center;
-    color: ${GOLD};
-    background: radial-gradient(circle at 30% 25%, rgba(242, 191, 81, 0.22), rgba(242, 191, 81, 0.05) 70%);
-    box-shadow: inset 0 0 0 1px rgba(242, 191, 81, 0.3);
+    color: #ffffff;
+    background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 70%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .acc-row-title {
@@ -222,35 +214,10 @@ const css = `
         width: 44px;
         height: 44px;
     }
-    .acc-row:hover {
-        padding-left: 6px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .acc-row {
-        transition: none;
-    }
 }
 `
 
 export default function AccommodationSection({ onRequestAccommodation }) {
-    const reduce = useReducedMotion()
-
-    // One orchestrated reveal: the list rows arrive in sequence
-    const listVariants = {
-        hidden: {},
-        show: { transition: { staggerChildren: reduce ? 0 : 0.12, delayChildren: 0.1 } },
-    }
-    const rowVariants = {
-        hidden: reduce ? { opacity: 0 } : { opacity: 0, x: 24 },
-        show: {
-            opacity: 1,
-            x: 0,
-            transition: { duration: reduce ? 0.2 : 0.6, ease: [0.22, 1, 0.36, 1] },
-        },
-    }
-
     return (
         <section className="acc-section" aria-labelledby="accommodation-heading">
             <style dangerouslySetInnerHTML={{ __html: css }} />
@@ -259,7 +226,7 @@ export default function AccommodationSection({ onRequestAccommodation }) {
                 <h2 id="accommodation-heading" className={dmSerif.className} style={{ color: '#ffffff' }}>
                     Need Accommodation?
                 </h2>
-                <h3 style={{ color: GOLD }}>Registered in events? Stay inside IIT Patna Campus</h3>
+                <h3 style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Registered in events? Stay inside IIT Patna Campus</h3>
             </div>
 
             <div className="acc-grid">
@@ -283,23 +250,17 @@ export default function AccommodationSection({ onRequestAccommodation }) {
                     </div>
                 </div>
 
-                <motion.ul
-                    className="acc-list"
-                    variants={listVariants}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true, amount: 0.3 }}
-                >
+                <ul className="acc-list">
                     {features.map((f) => (
-                        <motion.li key={f.title} className="acc-row" variants={rowVariants}>
+                        <li key={f.title} className="acc-row">
                             <span className="acc-icon">{f.icon}</span>
                             <div>
                                 <h4 className="acc-row-title">{f.title}</h4>
                                 <p className="acc-row-text">{f.text}</p>
                             </div>
-                        </motion.li>
+                        </li>
                     ))}
-                </motion.ul>
+                </ul>
             </div>
         </section>
     )

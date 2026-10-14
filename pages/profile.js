@@ -326,7 +326,7 @@ function Profile() {
                                 fontWeight: 'bold',
                                 fontFamily: "'Cormorant Garamond', serif"
                             }}>
-                                ⚠️ Myntra Registration Required for Pronite Entry
+                                âš ï¸ Myntra Registration Required for Pronite Entry
                             </h3>
                             <p style={{
                                 color: '#ffffff',
@@ -375,19 +375,20 @@ function Profile() {
                                 alignItems: 'center',
                             }}
                         >
-                            <div className={styles.userImage} style={{ position: 'relative' }}>
+                            <div className={styles.userImage}>
                                 <img
                                     src={'/home/circle.png'}
                                     width={180}
                                     height={180}
                                     alt="userImage"
+                                    className={styles.userCircleFrame}
                                 />
                                 <img
                                     src={profDetails.profile_photo_url || '/home/mascott.png'}
                                     width={150}
                                     height={150}
                                     alt="userImage"
-                                    style={{ borderRadius: '50%', objectFit: 'cover', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}
+                                    className={styles.userAvatar}
                                 />
                                 {profDetails.id_card_status !== 'VERIFIED' && (
                                     <>
@@ -399,29 +400,27 @@ function Profile() {
                                             onChange={handlePhotoUpload}
                                             disabled={uploadingPhoto}
                                         />
-                                        <label htmlFor="photo-upload" style={{ position: 'absolute', bottom: 10, right: 30, background: 'white', borderRadius: '50%', padding: '5px', cursor: 'pointer', zIndex: 20 }}>
-                                            {uploadingPhoto ? '⏳' : '📷'}
+                                        <label htmlFor="photo-upload" className={styles.photoUploadLabel} title="Upload Profile Picture">
+                                            {uploadingPhoto ? (
+                                                '⏳'
+                                            ) : (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="#444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <circle cx="12" cy="13" r="4" stroke="#444" strokeWidth="2"/>
+                                                </svg>
+                                            )}
                                         </label>
                                     </>
                                 )}
                             </div>
                             <div>
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center', // Ensures alignment
-                                        flexWrap: 'wrap',
-                                    }}
-                                >
+                                <div>
                                     <h1
                                         className={styles.anwesha_username}
-                                        style={{ fontWeight: 'normal' }}
+                                        style={{ fontWeight: 'normal', display: 'inline' }}
                                     >
                                         {profDetails.full_name}
-                                    </h1>
-
-                                    <button
+                                    </h1><button
                                         onClick={() => {
                                             if (profDetails.id_card_status === 'VERIFIED') {
                                                 toast.error('Profile update is blocked as ID card is VERIFIED.')
@@ -429,28 +428,18 @@ function Profile() {
                                             }
                                             setShowEditProfile(true)
                                         }}
-                                        className={styles.copy}
+                                        style={{ display: 'inline-flex', verticalAlign: 'middle', paddingLeft: '10px', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', bottom: '8px' }}
                                     >
                                         <motion.div
                                             style={{ cursor: 'pointer' }}
                                             whileTap={{ scale: 0.8 }}
                                         >
-                                            {!isEditing ? (
-                                                <img
-                                                    src="/edit.svg"
-                                                    width={20}
-                                                    height={20}
-                                                    alt="edit"
-                                                />
-                                            ) : (
-                                                <img
-                                                    onClick={editProfile}
-                                                    src="/assets/tick.svg"
-                                                    width={20}
-                                                    height={20}
-                                                    alt="edit"
-                                                />
-                                            )}
+                                            <img
+                                                src="/edit.svg"
+                                                width={20}
+                                                height={20}
+                                                alt="edit"
+                                            />
                                         </motion.div>
                                     </button>
                                 </div>
@@ -500,36 +489,12 @@ function Profile() {
                                         </motion.div>
                                     </button>
                                 </div>
-                                <div style={{ marginTop: '12px' }}>
+                                <div className={styles.changePasswordWrapper}>
                                     <Link href="/change-password" style={{ textDecoration: 'none' }}>
                                         <motion.button
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
-                                            style={{
-                                                backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                                                border: '1px solid rgba(255, 255, 255, 0.4)',
-                                                color: '#ffffff',
-                                                padding: '7px 16px',
-                                                borderRadius: '6px',
-                                                fontSize: '15px',
-                                                cursor: 'pointer',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                fontWeight: '600',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                transition: 'all 0.2s',
-                                            }}
-                                            onMouseOver={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'
-                                                e.currentTarget.style.borderColor = '#F2BF51'
-                                                e.currentTarget.style.color = '#F2BF51'
-                                            }}
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)'
-                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)'
-                                                e.currentTarget.style.color = '#ffffff'
-                                            }}
+                                            className={styles.changePasswordBtn}
                                         >
                                             Change Password
                                         </motion.button>
@@ -609,46 +574,52 @@ function Profile() {
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                zIndex: 1000,
-                                padding: '20px',
+                                zIndex: 100000,
+                                padding: '24px 16px',
+                                overflowY: 'auto',
                             }}
                             onClick={() => setShowEditProfile(false)}
                         >
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                                initial={{ opacity: 0, scale: 0.96, y: 12 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                transition={{ duration: 0.25, ease: 'easeOut' }}
+                                transition={{ duration: 0.2, ease: 'easeOut' }}
                                 style={{
-                                    background: 'linear-gradient(145deg, rgba(22, 22, 28, 0.98), rgba(12, 12, 16, 0.98))',
-                                    border: '1px solid rgba(242, 191, 81, 0.45)',
+                                    background: '#131318',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
                                     borderRadius: '16px',
-                                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(242, 191, 81, 0.12)',
+                                    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(104, 51, 255, 0.25)',
                                     width: '100%',
                                     maxWidth: '520px',
-                                    maxHeight: '90vh',
-                                    overflowY: 'auto',
-                                    padding: '30px 28px',
-                                    position: 'relative',
+                                    maxHeight: 'calc(100vh - 48px)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden',
+                                    margin: 'auto',
                                     color: '#ffffff',
                                     fontFamily: "'Cormorant Garamond', serif",
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                {/* Header */}
+                                {/* Fixed Header - Always Visible */}
                                 <div
                                     style={{
+                                        padding: '18px 24px',
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        marginBottom: '10px',
+                                        borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+                                        background: '#181822',
+                                        flexShrink: 0,
                                     }}
                                 >
                                     <h2
                                         style={{
-                                            color: '#F2BF51',
+                                            color: '#ffffff',
                                             margin: 0,
-                                            fontFamily: "'Cinzel Decorative', 'DM Serif Display', serif",
-                                            fontSize: '24px',
+                                            fontFamily: "'DM Serif Display', serif",
+                                            fontSize: '22px',
+                                            fontWeight: 'normal',
                                             letterSpacing: '1px',
                                         }}
                                     >
@@ -658,339 +629,347 @@ function Profile() {
                                         type="button"
                                         onClick={() => setShowEditProfile(false)}
                                         style={{
-                                            background: 'rgba(255, 255, 255, 0.06)',
-                                            border: '1px solid rgba(242, 191, 81, 0.3)',
-                                            color: '#F2BF51',
+                                            background: 'rgba(255, 255, 255, 0.08)',
+                                            border: 'none',
+                                            color: '#e2e8f0',
                                             borderRadius: '50%',
-                                            width: '32px',
-                                            height: '32px',
+                                            width: '30px',
+                                            height: '30px',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '16px',
+                                            fontSize: '14px',
                                             cursor: 'pointer',
-                                            transition: 'all 0.2s',
+                                            transition: 'background-color 0.2s',
                                         }}
                                         onMouseOver={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(242, 191, 81, 0.2)'
-                                            e.currentTarget.style.transform = 'scale(1.1)'
+                                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)'
                                         }}
                                         onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)'
-                                            e.currentTarget.style.transform = 'scale(1)'
+                                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'
                                         }}
                                     >
                                         ✕
                                     </button>
                                 </div>
 
+                                {/* Scrollable Form Body */}
                                 <div
                                     style={{
-                                        width: '100%',
-                                        height: '1px',
-                                        background: 'linear-gradient(90deg, transparent, rgba(242, 191, 81, 0.5), transparent)',
-                                        marginBottom: '22px',
-                                    }}
-                                />
-
-                                {/* Form */}
-                                <form
-                                    onSubmit={saveProfile}
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '16px',
+                                        padding: '22px 24px',
+                                        overflowY: 'auto',
+                                        flex: 1,
                                     }}
                                 >
-                                    <div>
-                                        <label
-                                            style={{
-                                                color: '#F2BF51',
-                                                display: 'block',
-                                                marginBottom: '6px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                letterSpacing: '0.5px',
-                                            }}
-                                        >
-                                            Full Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editFormData.full_name || ''}
-                                            onChange={(e) =>
-                                                setEditFormData({
-                                                    ...editFormData,
-                                                    full_name: e.target.value,
-                                                })
-                                            }
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
-                                                border: '1px solid rgba(242, 191, 81, 0.3)',
-                                                borderRadius: '8px',
-                                                color: '#ffffff',
-                                                fontSize: '16px',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={(e) =>
-                                                (e.target.style.borderColor = '#F2BF51')
-                                            }
-                                            onBlur={(e) =>
-                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
-                                            }
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            style={{
-                                                color: '#F2BF51',
-                                                display: 'block',
-                                                marginBottom: '6px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                letterSpacing: '0.5px',
-                                            }}
-                                        >
-                                            Phone Number
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editFormData.phone_number || ''}
-                                            onChange={(e) =>
-                                                setEditFormData({
-                                                    ...editFormData,
-                                                    phone_number: e.target.value,
-                                                })
-                                            }
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
-                                                border: '1px solid rgba(242, 191, 81, 0.3)',
-                                                borderRadius: '8px',
-                                                color: '#ffffff',
-                                                fontSize: '16px',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={(e) =>
-                                                (e.target.style.borderColor = '#F2BF51')
-                                            }
-                                            onBlur={(e) =>
-                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
-                                            }
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            style={{
-                                                color: '#F2BF51',
-                                                display: 'block',
-                                                marginBottom: '6px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                letterSpacing: '0.5px',
-                                            }}
-                                        >
-                                            Institute / College Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editFormData.collage_name || ''}
-                                            onChange={(e) =>
-                                                setEditFormData({
-                                                    ...editFormData,
-                                                    collage_name: e.target.value,
-                                                })
-                                            }
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
-                                                border: '1px solid rgba(242, 191, 81, 0.3)',
-                                                borderRadius: '8px',
-                                                color: '#ffffff',
-                                                fontSize: '16px',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={(e) =>
-                                                (e.target.style.borderColor = '#F2BF51')
-                                            }
-                                            onBlur={(e) =>
-                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
-                                            }
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            style={{
-                                                color: '#F2BF51',
-                                                display: 'block',
-                                                marginBottom: '6px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                letterSpacing: '0.5px',
-                                            }}
-                                        >
-                                            Date of Birth
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={editFormData.dob || ''}
-                                            onChange={(e) =>
-                                                setEditFormData({
-                                                    ...editFormData,
-                                                    dob: e.target.value,
-                                                })
-                                            }
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'rgba(10, 10, 14, 0.8)',
-                                                border: '1px solid rgba(242, 191, 81, 0.3)',
-                                                borderRadius: '8px',
-                                                color: '#ffffff',
-                                                colorScheme: 'dark',
-                                                fontSize: '16px',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={(e) =>
-                                                (e.target.style.borderColor = '#F2BF51')
-                                            }
-                                            onBlur={(e) =>
-                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
-                                            }
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            style={{
-                                                color: '#F2BF51',
-                                                display: 'block',
-                                                marginBottom: '6px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                letterSpacing: '0.5px',
-                                            }}
-                                        >
-                                            Gender
-                                        </label>
-                                        <select
-                                            value={editFormData.gender || ''}
-                                            onChange={(e) =>
-                                                setEditFormData({
-                                                    ...editFormData,
-                                                    gender: e.target.value,
-                                                })
-                                            }
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 14px',
-                                                backgroundColor: 'rgba(10, 10, 14, 0.95)',
-                                                border: '1px solid rgba(242, 191, 81, 0.3)',
-                                                borderRadius: '8px',
-                                                color: '#ffffff',
-                                                fontSize: '16px',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                            }}
-                                            onFocus={(e) =>
-                                                (e.target.style.borderColor = '#F2BF51')
-                                            }
-                                            onBlur={(e) =>
-                                                (e.target.style.borderColor = 'rgba(242, 191, 81, 0.3)')
-                                            }
-                                            required
-                                        >
-                                            <option value="" style={{ backgroundColor: '#141418', color: '#888' }}>Select Gender</option>
-                                            <option value="Male" style={{ backgroundColor: '#141418', color: '#fff' }}>Male</option>
-                                            <option value="Female" style={{ backgroundColor: '#141418', color: '#fff' }}>Female</option>
-                                            <option value="Other" style={{ backgroundColor: '#141418', color: '#fff' }}>Other</option>
-                                        </select>
-                                    </div>
-
-                                    <div
+                                    <form
+                                        onSubmit={saveProfile}
                                         style={{
                                             display: 'flex',
-                                            justifyContent: 'flex-end',
-                                            alignItems: 'center',
-                                            gap: '12px',
-                                            marginTop: '16px',
+                                            flexDirection: 'column',
+                                            gap: '16px',
                                         }}
                                     >
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowEditProfile(false)}
+                                        <div>
+                                            <label
+                                                style={{
+                                                    color: '#ffffff',
+                                                    display: 'block',
+                                                    marginBottom: '6px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    letterSpacing: '0.5px',
+                                                }}
+                                            >
+                                                Full Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editFormData.full_name || ''}
+                                                onChange={(e) =>
+                                                    setEditFormData({
+                                                        ...editFormData,
+                                                        full_name: e.target.value,
+                                                    })
+                                                }
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 14px',
+                                                    backgroundColor: '#1b1b22',
+                                                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                                                    borderRadius: '8px',
+                                                    color: '#ffffff',
+                                                    fontSize: '17px',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    fontVariantNumeric: 'lining-nums',
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#6833ff'
+                                                    e.target.style.boxShadow = '0 0 0 2px rgba(104, 51, 255, 0.25)'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+                                                    e.target.style.boxShadow = 'none'
+                                                }}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    color: '#ffffff',
+                                                    display: 'block',
+                                                    marginBottom: '6px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    letterSpacing: '0.5px',
+                                                }}
+                                            >
+                                                Phone Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editFormData.phone_number || ''}
+                                                onChange={(e) =>
+                                                    setEditFormData({
+                                                        ...editFormData,
+                                                        phone_number: e.target.value,
+                                                    })
+                                                }
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 14px',
+                                                    backgroundColor: '#1b1b22',
+                                                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                                                    borderRadius: '8px',
+                                                    color: '#ffffff',
+                                                    fontSize: '17px',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    fontVariantNumeric: 'lining-nums',
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#6833ff'
+                                                    e.target.style.boxShadow = '0 0 0 2px rgba(104, 51, 255, 0.25)'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+                                                    e.target.style.boxShadow = 'none'
+                                                }}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    color: '#ffffff',
+                                                    display: 'block',
+                                                    marginBottom: '6px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    letterSpacing: '0.5px',
+                                                }}
+                                            >
+                                                Institute / College Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editFormData.collage_name || ''}
+                                                onChange={(e) =>
+                                                    setEditFormData({
+                                                        ...editFormData,
+                                                        collage_name: e.target.value,
+                                                    })
+                                                }
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 14px',
+                                                    backgroundColor: '#1b1b22',
+                                                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                                                    borderRadius: '8px',
+                                                    color: '#ffffff',
+                                                    fontSize: '17px',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    fontVariantNumeric: 'lining-nums',
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#6833ff'
+                                                    e.target.style.boxShadow = '0 0 0 2px rgba(104, 51, 255, 0.25)'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+                                                    e.target.style.boxShadow = 'none'
+                                                }}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    color: '#ffffff',
+                                                    display: 'block',
+                                                    marginBottom: '6px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    letterSpacing: '0.5px',
+                                                }}
+                                            >
+                                                Date of Birth
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={editFormData.dob || ''}
+                                                onChange={(e) =>
+                                                    setEditFormData({
+                                                        ...editFormData,
+                                                        dob: e.target.value,
+                                                    })
+                                                }
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 14px',
+                                                    backgroundColor: '#1b1b22',
+                                                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                                                    borderRadius: '8px',
+                                                    color: '#ffffff',
+                                                    colorScheme: 'dark',
+                                                    fontSize: '17px',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    fontVariantNumeric: 'lining-nums',
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#6833ff'
+                                                    e.target.style.boxShadow = '0 0 0 2px rgba(104, 51, 255, 0.25)'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+                                                    e.target.style.boxShadow = 'none'
+                                                }}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    color: '#ffffff',
+                                                    display: 'block',
+                                                    marginBottom: '6px',
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    letterSpacing: '0.5px',
+                                                }}
+                                            >
+                                                Gender
+                                            </label>
+                                            <select
+                                                value={editFormData.gender || ''}
+                                                onChange={(e) =>
+                                                    setEditFormData({
+                                                        ...editFormData,
+                                                        gender: e.target.value,
+                                                    })
+                                                }
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 14px',
+                                                    backgroundColor: '#1b1b22',
+                                                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                                                    borderRadius: '8px',
+                                                    color: '#ffffff',
+                                                    fontSize: '17px',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = '#6833ff'
+                                                    e.target.style.boxShadow = '0 0 0 2px rgba(104, 51, 255, 0.25)'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.16)'
+                                                    e.target.style.boxShadow = 'none'
+                                                }}
+                                                required
+                                            >
+                                                <option value="" style={{ backgroundColor: '#141418', color: '#888' }}>Select Gender</option>
+                                                <option value="Male" style={{ backgroundColor: '#141418', color: '#fff' }}>Male</option>
+                                                <option value="Female" style={{ backgroundColor: '#141418', color: '#fff' }}>Female</option>
+                                                <option value="Other" style={{ backgroundColor: '#141418', color: '#fff' }}>Other</option>
+                                            </select>
+                                        </div>
+
+                                        <div
                                             style={{
-                                                padding: '10px 20px',
-                                                background: 'transparent',
-                                                border: '1px solid rgba(255, 255, 255, 0.3)',
-                                                color: '#cccccc',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                transition: 'all 0.2s',
-                                            }}
-                                            onMouseOver={(e) => {
-                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.6)'
-                                                e.currentTarget.style.color = '#ffffff'
-                                            }}
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)'
-                                                e.currentTarget.style.color = '#cccccc'
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                marginTop: '14px',
+                                                paddingTop: '8px',
                                             }}
                                         >
-                                            Cancel
-                                        </button>
-                                        <motion.button
-                                            whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                            type="submit"
-                                            disabled={profileSaving}
-                                            style={{
-                                                padding: '10px 26px',
-                                                background: 'linear-gradient(135deg, #F2BF51, #C39B54)',
-                                                border: 'none',
-                                                color: '#0a0a0c',
-                                                borderRadius: '8px',
-                                                cursor: profileSaving ? 'not-allowed' : 'pointer',
-                                                fontFamily: "'Cormorant Garamond', serif",
-                                                fontSize: '17px',
-                                                fontWeight: '700',
-                                                letterSpacing: '0.5px',
-                                                boxShadow: '0 4px 15px rgba(242, 191, 81, 0.35)',
-                                                opacity: profileSaving ? 0.7 : 1,
-                                            }}
-                                        >
-                                            {profileSaving ? 'Saving...' : 'Save Changes'}
-                                        </motion.button>
-                                    </div>
-                                </form>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEditProfile(false)}
+                                                style={{
+                                                    padding: '10px 22px',
+                                                    background: 'transparent',
+                                                    border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                                                    color: '#cbd5e1',
+                                                    cursor: 'pointer',
+                                                    fontSize: '16px',
+                                                    fontWeight: '600',
+                                                    fontFamily: "'Cormorant Garamond', serif",
+                                                    transition: 'all 0.2s',
+                                                    height: '48px',
+                                                }}
+                                                onMouseOver={(e) => {
+                                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'
+                                                    e.currentTarget.style.color = '#ffffff'
+                                                }}
+                                                onMouseOut={(e) => {
+                                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'
+                                                    e.currentTarget.style.color = '#cbd5e1'
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <motion.button
+                                                whileHover={{ scale: profileSaving ? 1 : 1.05 }}
+                                                whileTap={{ scale: profileSaving ? 1 : 0.97 }}
+                                                type="submit"
+                                                disabled={profileSaving}
+                                                className={styles.saveChangesBtn}
+                                                style={{
+                                                    opacity: profileSaving ? 0.7 : 1,
+                                                    cursor: profileSaving ? 'not-allowed' : 'pointer',
+                                                }}
+                                            >
+                                                {profileSaving ? 'Saving...' : 'Save Changes'}
+                                            </motion.button>
+                                        </div>
+                                    </form>
+                                </div>
                             </motion.div>
                         </div>
                     )}

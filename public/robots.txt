@@ -1,0 +1,33 @@
+# Robots.txt for Anwesha 2027 (IIT Patna) - https://anwesha.iitp.ac.in
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /profile
+Disallow: /user/
+Disallow: /verify-email/
+Disallow: /reset-password/
+Disallow: /submit-id
+Disallow: /test-payment
+Disallow: /payment-status
+Disallow: /change-password
+Disallow: /password-reset
+Disallow: /forgot-password
+Disallow: /ca-login
+Disallow: /ca-register
+Disallow: /userLogin
+Disallow: /userRegister
+Disallow: /send-verification
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /profile
+Disallow: /user/
+Disallow: /verify-email/
+Disallow: /reset-password/
+Disallow: /submit-id
+Disallow: /test-payment
+Disallow: /payment-status
+
+Host: https://anwesha.iitp.ac.in
+Sitemap: https://anwesha.iitp.ac.in/sitemap.xml
