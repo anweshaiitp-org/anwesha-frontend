@@ -1025,6 +1025,13 @@ const IndexPage = () => {
                         />
                     )}
 
+                    {/* Accommodation Section */}
+                    <AccommodationSection
+                        onRequestAccommodation={() => {
+                            router.push('/accommodation')
+                        }}
+                    />
+
                     <AccommodationModal
                         isOpen={showAccommodationModal}
                         onClose={() => setShowAccommodationModal(false)}
@@ -1214,13 +1221,6 @@ const IndexPage = () => {
                             </div>
                         </div>
                     </section>
-
-                    {/* Accommodation Section */}
-                    <AccommodationSection
-                        onRequestAccommodation={() => {
-                            router.push('/accommodation')
-                        }}
-                    />
 
                     {/* Sponsors */}
 
