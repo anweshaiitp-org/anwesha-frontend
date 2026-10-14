@@ -1,0 +1,103 @@
+.card {
+    --accent: #c79bff;
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 18px 20px;
+    color: #f2ecdf;
+    background: rgba(55, 15, 88, 0.55);
+    border: 1px solid rgba(178, 83, 255, 0.3);
+    border-left: 4px solid var(--accent);
+    border-radius: 14px;
+    backdrop-filter: blur(6px);
+}
+
+.action {
+    --accent: #c79bff;
+}
+
+.warning {
+    --accent: #f59e0b;
+}
+
+.info {
+    --accent: #60a5fa;
+}
+
+.success {
+    --accent: #4ade80;
+}
+
+.icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+}
+
+.body {
+    flex: 1;
+    min-width: 0;
+}
+
+.title {
+    margin: 0 0 4px;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.message {
+    margin: 0;
+    color: #d6cce3;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.button {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 20px;
+    color: #e8d9a8;
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: #370f58;
+    border: 1.5px solid #4f1c7a;
+    border-radius: 10px;
+    box-shadow: 0 0 14px rgba(178, 83, 255, 0.3);
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.button:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+.button:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .card {
+        flex-wrap: wrap;
+        margin: 16px 12px;
+    }
+
+    .button {
+        width: 100%;
+    }
+}

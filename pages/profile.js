@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import Details from '../components/Profile/details'
 import MyEvents from '../components/Profile/myEvents'
+import IdSubmissionCard from '../components/Profile/IdSubmissionCard'
 import MyMerch from '../components/Profile/myMerch'
 import Head from 'next/head'
 import styles from '../styles/profile.module.css'
@@ -312,6 +313,10 @@ function Profile() {
                 <div className={styles.welcome}>WELCOME BACK!</div>
 
                 <div className={styles.subContainer}>
+                    <IdSubmissionCard
+                        status={profDetails.id_card_status}
+                        getAuthHeaders={userData?.getAuthHeaders}
+                    />
                     {/* Myntra Registration Notice */}
                     {!myntraLoading && myntraStatus && myntraStatus.is_myntra_registered === false && (
                         <div style={{
