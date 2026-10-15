@@ -2,7 +2,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/169e9195-9697-474f-9d0e-15c58701549f/deploy-status)](https://app.netlify.com/sites/anwesha2022/deploys)
 
 ## 📜 Overview
-IIT Patna’s own cultural-management fest - Anwesha is back on track this year - a saga of art, culture and celebration. Bigger, better and grander than ever before, join in and contribute to the frontend of Anwesha’s revamped website!
+IIT Patna’s own socio-cultural management fest - Anwesha is back on track this year - a saga of art, culture and celebration. Bigger, better and grander than ever before, join in and contribute to the frontend of Anwesha’s revamped website!
 This is a **[Next.js](https://nextjs.org/)** project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 Beginner to intermediate levels of knowledge in **HTML**, **CSS** and **Javascript** would be enough to contribute to most of the issues in this project.
 
