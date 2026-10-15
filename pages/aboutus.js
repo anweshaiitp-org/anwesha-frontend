@@ -9,7 +9,7 @@ const Aboutus = () => {
             <div className={styles.sec}>
                 <br />
                 <p className={styles.para}>
-                    Anwesha is the Annual Techno-Cultural-Mangement Extravaganza
+                    Anwesha is the Annual Socio-Cultural Management Extravaganza
                     of Indian Institute of Technology Patna. The name Anwesha
                     symbolizes, the quest for grandeur, opulence, creativity and
                     perfection. Since its inception in 2010, it has turned out

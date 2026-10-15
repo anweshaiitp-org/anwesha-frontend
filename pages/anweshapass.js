@@ -438,7 +438,7 @@ function Anweshapass() {
                         <h3>Rhythm, Tradition, and Celebration</h3>
                     </div>
                     <p>
-                        Get ready to twirl, clap, and dance the night away! Brought to you by Anwesha—the annual techno-cultural fest of IIT Patna—this Garba night promises an unforgettable evening of music, color, and culture.
+                        Get ready to twirl, clap, and dance the night away! Brought to you by Anwesha—the annual socio-cultural management fest of IIT Patna—this Garba night promises an unforgettable evening of music, color, and culture.
                     </p>
                     <div style={{ marginTop: '20px' }}>
                         <a
