@@ -36,6 +36,9 @@ const TicketSVG = React.forwardRef(function TicketSVG({
 }, ref) {
     const s = SCHEMES[scheme] || SCHEMES.garbha;
     const uid = React.useId();
+    const backgroundHref = scheme === 'garbha_stay'
+        ? '/ticket/background_blue.png'
+        : '/ticket/background_red.png';
 
     const nameText = clip(name, 40);
     const nameSize = fitFont(nameText, 22, 285, 13);
@@ -64,7 +67,7 @@ const TicketSVG = React.forwardRef(function TicketSVG({
                         <stop offset="100%" stopColor={s.gold} />
                     </linearGradient>
                     <mask id={`mask-${uid}`}>
-                        <rect x="0" y="0" width="900" height="380" fill="#fff" />
+                        <rect x="0" y="0" width="900" height="380" rx="22" fill="#fff" />
                         <circle cx="660" cy="0" r="18" fill="#000" />
                         <circle cx="660" cy="380" r="18" fill="#000" />
                     </mask>
@@ -72,6 +75,14 @@ const TicketSVG = React.forwardRef(function TicketSVG({
 
                 <g mask={`url(#mask-${uid})`}>
                     <rect x="0" y="0" width="900" height="380" rx="22" fill={`url(#bg-${uid})`} />
+                    <image
+                        href={backgroundHref}
+                        x="0"
+                        y="0"
+                        width="900"
+                        height="380"
+                        preserveAspectRatio="none"
+                    />
 
                     {/* Faint diagonal weave texture */}
                     <g opacity="0.05" stroke={s.cream} strokeWidth="1">
@@ -83,51 +94,46 @@ const TicketSVG = React.forwardRef(function TicketSVG({
                     {/* Seam perforation */}
                     <line x1="660" y1="30" x2="660" y2="350" stroke={s.gold} strokeWidth="1.5" strokeDasharray="5 6" opacity="0.55" />
 
-                    {/* Mandala Motif */}
-                    <g opacity="0.07" stroke={s.gold} fill="none">
-                        {[48, 76, 104, 132].map(r => <circle key={r} cx="560" cy="190" r={r} strokeWidth="1" />)}
-                        {Array.from({ length: 18 }).map((_, i) => {
-                            const ang = i * (Math.PI * 2 / 18);
-                            return <circle key={i} cx={(560 + 132 * Math.cos(ang)).toFixed(1)} cy={(190 + 132 * Math.sin(ang)).toFixed(1)} r="2.6" fill={s.gold} stroke="none" />
-                        })}
-                    </g>
 
-                    {/* Dancer Silhouette */}
-                    <g transform="translate(560,250) scale(1.5)" opacity="0.16" fill={s.gold} stroke={s.gold}>
-                        <circle cx="0" cy="-92" r="11" stroke="none" />
-                        <path d="M -6,-80 C -10,-50 -8,-30 -34,10 C -14,26 14,26 34,10 C 8,-30 10,-50 6,-80 Z" stroke="none" />
-                        <path d="M -6,-78 C -26,-95 -40,-110 -50,-128" fill="none" strokeWidth="7" strokeLinecap="round" />
-                        <line x1="-50" y1="-128" x2="-66" y2="-150" strokeWidth="4" strokeLinecap="round" />
-                        <circle cx="-66" cy="-150" r="3.4" stroke="none" />
-                        <path d="M 6,-78 C 28,-64 46,-46 58,-22" fill="none" strokeWidth="7" strokeLinecap="round" />
-                        <line x1="58" y1="-22" x2="76" y2="-4" strokeWidth="4" strokeLinecap="round" />
-                        <circle cx="76" cy="-4" r="3.4" stroke="none" />
-                    </g>
+                    {/* Ticket-local Anwesha logo */}
+                    <image
+                        href="/ticket/anwesha-logo.png"
+                        x="46"
+                        y="24"
+                        width="190"
+                        height="58"
+                        preserveAspectRatio="xMinYMid meet"
+                    />
 
-                    {/* Logo + wordmark */}
-                    <g transform="translate(46,28) scale(0.42)">
-                        <path d={LOGO_PATH} fill={s.gold} />
-                    </g>
-                    <text x="90" y="49" fontFamily="'Playfair Display', serif" fontWeight="800" fontSize="25" letterSpacing="1.5" fill={s.cream}>Anwesha</text>
-                    <text x="90" y="66" fontFamily="'Poppins', sans-serif" fontWeight="500" fontSize="9.5" letterSpacing="1.8" fill={s.gold} opacity="0.9">INDIAN INSTITUTE OF TECHNOLOGY, PATNA</text>
-
-                    {/* Hero title */}
-                    <text x="44" y="146" fontFamily="'Yatra One', cursive" fontSize="50" fill={s.cream}>GARBA</text>
-                    <text x="44" y="194" fontFamily="'Yatra One', cursive" fontSize="50" fill={`url(#titleGold-${uid})`}>NIGHT</text>
+                    {/* Supplied Garba Night artwork */}
+                    <image
+                        href="/ticket/garba.png"
+                        x="135"
+                        y="58"
+                        width="230"
+                        height="150"
+                        preserveAspectRatio="none"
+                    />
+                    <image
+                        href="/ticket/night.png"
+                        x="365"
+                        y="90"
+                        width="230"
+                        height="86"
+                        preserveAspectRatio="none"
+                    />
 
                     {/* Rule with ornament */}
-                    <line x1="46" y1="213" x2="330" y2="213" stroke={s.gold} strokeWidth="1" opacity="0.55" />
-                    <rect x="326" y="208" width="9" height="9" fill={s.gold} transform="rotate(45 330.5 212.5)" />
-                    <line x1="341" y1="213" x2="614" y2="213" stroke={s.gold} strokeWidth="1" opacity="0.55" />
+                    <svg x="46" y="204" width="568" height="18" viewBox="63 250 2274 102" preserveAspectRatio="none">
+                        <image href="/ticket/border.png" x="0" y="0" width="2400" height="600" />
+                    </svg>
 
                     {/* Venue + Time */}
                     <text x="46" y="233" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="9" letterSpacing="2" fill={s.gold} opacity="0.85">VENUE</text>
                     <text x="46" y="253" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="14" fill={s.cream}>{venue}</text>
 
-                    <text x="360" y="233" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="9" letterSpacing="2" fill={s.gold} opacity="0.85">TIME</text>
-                    <text x="360" y="253" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="14" fill={s.cream}>{time}</text>
-
-                    <line x1="46" y1="267" x2="614" y2="267" stroke={s.gold} strokeWidth="1" opacity="0.3" />
+                    <text x="340" y="233" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="9" letterSpacing="2" fill={s.gold} opacity="0.85">TIME</text>
+                    <text x="340" y="253" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="14" fill={s.cream}>{time}</text>
 
                     {/* Row 1: Pass holder | Anwesha ID */}
                     <text x="46" y="286" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="9.5" letterSpacing="2" fill={s.gold} opacity="0.85">PASS HOLDER</text>
@@ -164,8 +170,6 @@ const TicketSVG = React.forwardRef(function TicketSVG({
                         <QRCode value={qrToken} size={180} bgColor={s.cream} fgColor={s.base0} level="M" />
                     </foreignObject>
 
-                    <line x1="715" y1="286" x2="845" y2="286" stroke={s.gold} strokeWidth="1" opacity="0.4" />
-
                     {/* Stamp Ornament */}
                     <g opacity="0.7" fill={s.gold}>
                         <circle cx="780" cy="315" r="4.5" />
@@ -178,14 +182,8 @@ const TicketSVG = React.forwardRef(function TicketSVG({
                     <text x="780" y="343" textAnchor="middle" fontFamily="'Poppins', sans-serif" fontWeight="600" fontSize="8.5" letterSpacing="2" fill={s.gold} opacity="0.7">OFFICIAL ENTRY PASS</text>
                     <text x="893" y="190" textAnchor="middle" fontFamily="'Poppins', sans-serif" fontWeight="500" fontSize="9" letterSpacing="2.2" fill={s.gold} opacity="0.5" transform="rotate(90 893 190)">{s.passLabel}</text>
 
-                    {/* Bottom bandhani dot border */}
-                    {Array.from({ length: Math.floor((878 - 22) / 15) }).map((_, i) => {
-                        const x = 22 + i * 15;
-                        if (x > 640 && x < 680) return null; // Clear seam
-                        return <circle key={i} cx={x} cy="368" r="1.5" fill={s.gold} opacity="0.35" />
-                    })}
                 </g>
-                <rect x="0.75" y="0.75" width="898.5" height="378.5" rx="21" fill="none" stroke={s.gold} strokeWidth="1.2" opacity="0.5" />
+                <rect x="1.25" y="1.25" width="897.5" height="377.5" rx="21" fill="none" stroke={s.gold} strokeWidth="2.5" opacity="0.8" />
             </svg>
         </div>
     );
