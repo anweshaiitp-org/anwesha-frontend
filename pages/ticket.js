@@ -9,7 +9,7 @@ const host = process.env.NEXT_PUBLIC_HOST || '/api/backend'
 /* ---------- helpers ---------- */
 
 const resolveScheme = (type = '') =>
-    /stay|overnight|accom/i.test(String(type)) ? 'garbha_stay' : 'garbha'
+    /stay|overnight|acc/i.test(String(type)) ? 'garbha_stay' : 'garbha'
 
 function describeError(kind, serverMessage) {
     switch (kind) {
@@ -65,6 +65,67 @@ const kindFromStatus = (status) => {
     if (status === 429) return 'rate-limit'
     if (status >= 500) return 'server'
     return 'invalid'
+}
+
+const blobToDataUrl = (blob) =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+    })
+
+const prepareSvgClone = async (svg) => {
+    const clone = svg.cloneNode(true)
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+
+    // Unwrap foreignObject if any so Canvas rasterizer won't choke on it
+    clone.querySelectorAll('foreignObject').forEach((fo) => {
+        const innerSvg = fo.querySelector('svg')
+        if (innerSvg) {
+            const x = fo.getAttribute('x') || '0'
+            const y = fo.getAttribute('y') || '0'
+            const w = fo.getAttribute('width') || '180'
+            const h = fo.getAttribute('height') || '180'
+            innerSvg.setAttribute('x', x)
+            innerSvg.setAttribute('y', y)
+            innerSvg.setAttribute('width', w)
+            innerSvg.setAttribute('height', h)
+            fo.replaceWith(innerSvg)
+        }
+    })
+
+    const images = Array.from(clone.querySelectorAll('image'))
+    await Promise.all(
+        images.map(async (img) => {
+            const href = img.getAttribute('href') || img.getAttribute('xlink:href')
+            if (!href || href.startsWith('data:')) return
+            try {
+                const absoluteUrl = new URL(href, window.location.href).href
+                const res = await fetch(absoluteUrl)
+                const blob = await res.blob()
+                const dataUrl = await blobToDataUrl(blob)
+                img.setAttribute('href', dataUrl)
+                img.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', dataUrl)
+            } catch (err) {
+                console.error('Failed to inline image in SVG:', href, err)
+            }
+        })
+    )
+
+    return clone
+}
+
+const triggerDownload = (blob, filename) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setTimeout(() => URL.revokeObjectURL(url), 1500)
 }
 
 /* ---------- small UI pieces ---------- */
@@ -138,22 +199,81 @@ function TicketPage() {
     const [error, setError] = useState(null)
     const [attempt, setAttempt] = useState(0)
     const [copied, setCopied] = useState(false)
+    const [downloading, setDownloading] = useState(false)
 
     const retry = useCallback(() => setAttempt((n) => n + 1), [])
 
-    const downloadTicket = () => {
+    const downloadTicket = async () => {
         const svg = ticketSvgRef.current
-        if (!svg) return
-        const source = new XMLSerializer().serializeToString(svg)
-        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `anwesha-ticket-${ticketData?.anwesha_id || ticketData?.anweshaId || 'pass'}.svg`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
+        if (!svg || downloading) return
+        setDownloading(true)
+
+        const baseName = `anwesha-ticket-${ticketData?.anwesha_id || ticketData?.anweshaId || 'pass'}`
+
+        try {
+            if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+                try {
+                    await document.fonts.ready
+                } catch {
+                    /* continue */
+                }
+            }
+
+            const preparedSvg = await prepareSvgClone(svg)
+            const svgString = new XMLSerializer().serializeToString(preparedSvg)
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+
+            let pngSuccess = false
+            try {
+                const svgUrl = URL.createObjectURL(svgBlob)
+                const img = new Image()
+                img.crossOrigin = 'anonymous'
+
+                await new Promise((resolve, reject) => {
+                    img.onload = () => resolve()
+                    img.onerror = (e) => reject(e)
+                    img.src = svgUrl
+                })
+
+                const canvas = document.createElement('canvas')
+                canvas.width = 1800
+                canvas.height = 760
+                const ctx = canvas.getContext('2d')
+
+                if (ctx) {
+                    ctx.imageSmoothingEnabled = true
+                    ctx.imageSmoothingQuality = 'high'
+                    ctx.drawImage(img, 0, 0, 1800, 760)
+                    URL.revokeObjectURL(svgUrl)
+
+                    const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+                    if (pngBlob) {
+                        triggerDownload(pngBlob, `${baseName}.png`)
+                        pngSuccess = true
+                    }
+                } else {
+                    URL.revokeObjectURL(svgUrl)
+                }
+            } catch (canvasErr) {
+                console.warn('[Ticket] Canvas PNG export failed, falling back to SVG:', canvasErr)
+            }
+
+            if (!pngSuccess) {
+                // Fallback: download standalone SVG with inlined base64 images
+                triggerDownload(svgBlob, `${baseName}.svg`)
+            }
+        } catch (err) {
+            console.error('[Ticket] Error preparing ticket download:', err)
+            try {
+                const fallbackString = new XMLSerializer().serializeToString(svg)
+                const fallbackBlob = new Blob([fallbackString], { type: 'image/svg+xml;charset=utf-8' })
+                triggerDownload(fallbackBlob, `${baseName}.svg`)
+            } catch {
+                /* fallback failed */
+            }
+        } finally {
+            setDownloading(false)
+        }
     }
 
     const shareTicket = async () => {
@@ -287,13 +407,19 @@ function TicketPage() {
                             </TicketFrame>
 
                             <div className={styles.actions}>
-                                <button type="button" className={styles.btnPrimary} onClick={downloadTicket}>
+                                <button
+                                    type="button"
+                                    className={styles.btnPrimary}
+                                    onClick={downloadTicket}
+                                    disabled={downloading}
+                                    style={downloading ? { opacity: 0.75, cursor: 'wait' } : undefined}
+                                >
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }} aria-hidden="true">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                         <polyline points="7 10 12 15 17 10" />
                                         <line x1="12" y1="15" x2="12" y2="3" />
                                     </svg>
-                                    Download Ticket
+                                    {downloading ? 'Preparing Ticket…' : 'Download Ticket'}
                                 </button>
                                 <button type="button" className={styles.btnGhost} onClick={shareTicket}>
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }} aria-hidden="true">
